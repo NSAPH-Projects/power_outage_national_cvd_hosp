@@ -1,12 +1,18 @@
 # This file reads in the medpar denominator and hospitalization files for
 # 2018 and pulls the hospitalizations related to CVD
 
+# going to tally them in this script to save memory
+
+
+# Libraries ---------------------------------------------------------------
+
 library(here)
 library(tidyverse)
 library(arrow)
 library(data.table)
 
 
+# Read files --------------------------------------------------------------
 
 # read in medicare hospitalizations and beneficiaries for 2018
 benes_2018 <-
@@ -16,8 +22,23 @@ hosp_2018 <-
   arrow::read_parquet(here('data', "medpar_hospitalizations_2018.parquet")) |>
   as.data.table()
 
+# join metadata to hospitalizations that did occur in 2018
+hosp_info <- merge(hosp_2018, benes_2018, by = "bene_id", all.x = TRUE)
 
-xwalk <- zctaCrosswalk::get_zcta_crosswalk()
+rm(hosp_2018, benes_2018)
+
+hosp_info_sample <- hosp_info[sample(.N, 1000)]
+
+# Pull ICD codes ----------------------------------------------------------
+
+hosp_info <-
+  hosp_info[, paste0("code_", 1:5) := transpose(lapply(diagnoses, function(x) {
+    length(x) <- 5
+    x
+  }))]
+
+
+
 
 # EDA questions
 hist(benes_2018$age_dob)
