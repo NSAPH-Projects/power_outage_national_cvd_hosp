@@ -7,9 +7,14 @@
 # libraries
 library(here)
 
+devtools::install_github("UrbanInstitute/urbnmapr")
+
 # set proxies for GitHub access
 Sys.setenv(http_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 Sys.setenv(https_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
+
+# install tigris
+install.packages('tigris')
 
 # stop R from being a lil bih about numbers
 options(scipen = 999)

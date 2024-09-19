@@ -475,18 +475,27 @@ resp_icd_10 <-
 
 
 all_icd_codes <- list(
-  mi_icd_10,
-  mi_icd_9,
-  afib_icd_10,
-  afib_icd_9,
-  hem_stroke_icd_10,
-  hem_stroke_icd_9,
-  hyp_icd_10,
-  hyp_icd_9,
-  istroke_icd_10,
-  istroke_icd_9,
-  resp_icd_10,
-  resp_icd_9
+  mi_icd_10 = mi_icd_10,
+  mi_icd_9 = mi_icd_9,
+  afib_icd_10 = afib_icd_10,
+  afib_icd_9 = afib_icd_9,
+  hem_stroke_icd_10 = hem_stroke_icd_10,
+  hem_stroke_icd_9 = hem_stroke_icd_9,
+  hyp_icd_10 = hyp_icd_10,
+  hyp_icd_9 = hyp_icd_9,
+  istroke_icd_10 = istroke_icd_10,
+  istroke_icd_9 = istroke_icd_9,
+  resp_icd_10 = resp_icd_10,
+  resp_icd_9 = resp_icd_9,
+  cvd_no_hem_no_hyp = c(
+    mi_icd_10,
+    mi_icd_9,
+    afib_icd_10,
+    afib_icd_9,
+    istroke_icd_10,
+    istroke_icd_9
+  ),
+  resp = c(resp_icd_10, resp_icd_9)
 )
 
 write_rds(all_icd_codes, here("data", "all_icd_codes.RDS"))
