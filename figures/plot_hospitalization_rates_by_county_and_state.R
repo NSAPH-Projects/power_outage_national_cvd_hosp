@@ -84,6 +84,8 @@ p1 <-
 beneficiaries, not including hem stroke or hypertension related
 hospitalizations")
 
+print(p1)
+
 p2 <-
   plot_hosp_county |>
   ggplot() +
@@ -92,6 +94,8 @@ p2 <-
   theme_map() +
   ggtitle("2018 Respiratory disease-related hospitalization rate per 100,000
 among medicare beneficiaries")
+
+print(p2)
 
 p3 <-
   plot_hosp_county |>
@@ -103,6 +107,8 @@ p3 <-
   ggtitle("2018 CVD disease-related hospitalization rate per 100,000
 among medicare beneficiaries, including all CVD except hypertension")
 
+print(p3)
+
 p4 <- plot_hosp_county |>
   filter(county != '51685') |>
   ggplot() +
@@ -111,6 +117,8 @@ p4 <- plot_hosp_county |>
   theme_map() +
   ggtitle("2018 stroke-related hospitalization rate per 100,000
 among medicare beneficiaries")
+
+print(p4)
 
 dev.off()
 
@@ -142,6 +150,8 @@ p1 <-
 beneficiaries, not including hem stroke or hypertension related
 hospitalizations")
 
+print(p1)
+
 p2 <-
   plot_hosp_county |>
   ggplot() +
@@ -150,6 +160,8 @@ p2 <-
   theme_map() +
   ggtitle("2018 Respiratory disease-related hospitalization rate per 100,000
 among medicare beneficiaries")
+
+print(p2)
 
 p3 <-
   plot_hosp_county |>
@@ -161,6 +173,8 @@ p3 <-
   ggtitle("2018 CVD disease-related hospitalization rate per 100,000
 among medicare beneficiaries, including all CVD except hypertension")
 
+print(p3)
+
 p4 <- plot_hosp_county |>
   filter(county != '51685') |>
   ggplot() +
@@ -169,6 +183,8 @@ p4 <- plot_hosp_county |>
   theme_map() +
   ggtitle("2018 stroke-related hospitalization rate per 100,000
 among medicare beneficiaries")
+
+print(p4)
 
 dev.off()
 
