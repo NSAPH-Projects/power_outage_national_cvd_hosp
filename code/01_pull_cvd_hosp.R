@@ -5,6 +5,7 @@
 # need daily hospitalization counts by day for each county for 2018
 # panel
 
+# By: Heather, September 20th, 2024
 
 # Libraries ---------------------------------------------------------------
 
@@ -12,8 +13,6 @@ library(here)
 library(tidyverse)
 library(arrow)
 library(data.table)
-library(sf)
-library(tigris)
 
 
 # Read files --------------------------------------------------------------
@@ -32,13 +31,6 @@ icd_codes <- readRDS(here("data", "all_icd_codes.RDS"))
 # join metadata to hospitalizations that did occur in 2018
 hosp_info <- merge(hosp_2018, benes_2018, by = "bene_id", all.x = TRUE)
 
-# idk if this is helping idk how this server works
-rm(hosp_2018, benes_2018)
-
-# for sampling for writing
-# hosp_info_sample <- hosp_info[sample(.N, 1000)]
-# write_rds(hosp_info_sample, here('data', "working_medicare_sample.RDS"))
-
 # Pull ICD codes ----------------------------------------------------------
 
 # get the first five ICD codes
@@ -49,8 +41,17 @@ hosp_info <-
   }))]
 
 # define codes from icd codes file
-cvd <- icd_codes$cvd_no_hem_no_hyp
-resp <- icd_codes$resp
+cvd <- icd_codes$cvd_no_hem_no_hyp # cvd without hem stroke or hypertension
+resp <- icd_codes$resp # all respiratory codes
+# stroke and MI codes to check our work
+stroke <- c(
+  icd_codes$istroke_icd_9,
+  icd_codes$istroke_icd_10,
+  icd_codes$hem_stroke_icd_10,
+  icd_codes$hem_stroke_icd_9
+)
+mi <- c(icd_codes$mi_icd_10, icd_codes$mi_icd_9)
+
 
 # indicate hospitalizations with the codes
 hosp_info <- hosp_info[, contains_cvd_code := as.integer(
@@ -69,85 +70,37 @@ hosp_info <- hosp_info[, contains_resp_code := as.integer(
     code_5 %in% resp
 )]
 
+hosp_info <- hosp_info[, contains_stroke_code := as.integer(
+  code_1 %in% stroke |
+    code_2 %in% stroke |
+    code_3 %in% stroke |
+    code_4 %in% stroke |
+    code_5 %in% stroke
+)]
+
+hosp_info <- hosp_info[, contains_mi_code := as.integer(
+  code_1 %in% mi |
+    code_2 %in% mi |
+    code_3 %in% mi |
+    code_4 %in% mi |
+    code_5 %in% mi
+)]
+
 # summarize to day-county level
 hosp_by_day_by_county <- hosp_info[, .(
   n_cvd = sum(contains_cvd_code),
-  n_resp = sum(contains_resp_code)),
+  n_resp = sum(contains_resp_code),
+  n_stroke = sum(contains_stroke_code),
+  n_mi = sum(contains_mi_code)),
   by = .(admission_date, county, state)
 ]
 
 
 # Write -------------------------------------------------------------------
 
-write_rds(hosp_by_day_by_county, here("data", "num_hosp_by_day_by_county_inc_state.RDS"))
+write_rds(hosp_by_day_by_county,
+          here("data", "num_hosp_by_day_by_county_inc_state.RDS"))
 
-
-# Bonus plots -------------------------------------------------------------
-
-# about how many hospitalizations would we expect to be due to CVD?
-# how many due to respiratory issues?
-
-# can we count hospitalizations by county?
-
-# plot hospitalization counts by county
-hosp_by_county_2018 <- hosp_info[, .(
-  n_cvd = sum(contains_cvd_code),
-  n_resp = sum(contains_resp_code)
-), by = county]
-
-
-# read in counties
-us_counties <- counties(year = 2018)
-
-# define the FIPS and letter codes for Alaska, Hawaii, and other territories
-excluded_states <- c("02", "15", "60", "66", "69", "72", "78")
-excluded_states_letters <- c("AK", "HI", "AS", "GU", "MP", "PR", "VI")
-
-# clean slightly
-conus_counties <- us_counties %>%
-  filter(!STATEFP %in% excluded_states) %>%
-  mutate(county = paste0(STATEFP, COUNTYFP)) %>%
-  select(county)
-
-# filter hosp to conus
-hosp_by_county_2018 <- hosp_by_county_2018[!state %in% excluded_states_letters]
-
-# join
-plot_hosp_county <- conus_counties %>% left_join(hosp_by_county_2018)
-
-# plot
-p1 <- plot_hosp_county %>% ggplot() + geom_sf(aes(fill = n_cvd))
-p2 <- plot_hosp_county %>% ggplot() + geom_sf(aes(fill = n_resp))
-
-hosp_by_state_by_day <- hosp_info[, .(
-  n_cvd = sum(contains_cvd_code),
-  n_resp = sum(contains_resp_code),
-  by = .(admission_date, state)
-)]
-
-library(tigris)
-us_counties <- counties(year = 2018)
-
-# Define the FIPS codes for Alaska, Hawaii, and other territories
-excluded_states <- c("02", "15", "60", "66", "69", "72", "78")
-
-excluded_states_letters <- c("AK", "HI", "AS", "GU", "MP", "PR", "VI")
-hosp_info_sample <- hosp_info_sample %>% filter(!(state %in% excluded_states_letters))
-
-conus_counties <- us_counties %>%
-  filter(!STATEFP %in% excluded_states)
-
-conus_counties <- conus_counties %>% mutate(county = paste0(STATEFP, COUNTYFP)) %>% select(county)
-
-cc <- conus_counties %>% left_join(hosp_by_county_2018)
-hosp_by_county_2018 <- hosp_by_county_2018 %>% left_join(conus_counties)
-
-l <- cc %>% ggplot() + geom_sf(aes(fill = n_cvd))
-ll <- cc %>% ggplot() + geom_sf(aes(fill = n_resp))
-
-
-
-library(sf)
-plot(st_geometry(conus_counties))
-
-
+# write denom
+benes_by_county <- benes_2018[, .(n_benes = .N), by = .(county, state)]
+write_rds(benes_by_county, here('data', 'benes_by_county_fips.RDS'))
