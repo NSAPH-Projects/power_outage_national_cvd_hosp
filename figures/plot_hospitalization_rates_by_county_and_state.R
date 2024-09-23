@@ -1,7 +1,5 @@
 # Plot CVD and respiratory hospitalization rates by county for 2018. etc.
-
 # Heather, September 20th, 2024
-
 
 # Libraries ---------------------------------------------------------------
 
@@ -12,7 +10,6 @@ library(ggthemes)
 library(viridis)
 library(data.table)
 
-
 # Read --------------------------------------------------------------------
 
 # medicare
@@ -21,7 +18,6 @@ benes <- readRDS(here('data', "benes_by_county_fips.RDS"))
 
 # us counties
 us_counties <- readRDS(here("data", "counties_sf.RDS"))
-
 
 # Clean -------------------------------------------------------------------
 
@@ -66,7 +62,6 @@ plot_hosp_county <- plot_hosp_county |>
     all_cvd_hosp_rate = all_cvd / n_benes * 100000,
     stroke_hosp_rate = n_stroke / n_benes * 100000
   )
-
 
 # Plot and save -----------------------------------------------------------
 
