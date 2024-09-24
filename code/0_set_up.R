@@ -12,14 +12,15 @@ Sys.setenv(http_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 Sys.setenv(https_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 
 # install tigris
-install.packages('tigris')
-install.packages('ggthemes')
+# install.packages('tigris')
+# install.packages('ggthemes')
 
 # stop R from being a lil bih about numbers
 options(scipen = 999)
 
 # add token so we can use GitHub
 gitcreds::gitcreds_set()
+gitcreds::gitcreds_get()
 
 # create symlinks for 2018 denom and hospitalization files
 # denom file
