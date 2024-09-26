@@ -1,15 +1,20 @@
-# pull gridmet data
+# Pull gridmet data already cleaned by NSAPH
+
+# Libraries ---------------------------------------------------------------
 
 library(arrow)
 library(tidyverse)
 library(here)
 
-i <- read_parquet(
-  "/n/dominici_nsaph_l3/Lab/data/data_warehouse/dw_dorieh_climate/data/county/year=2018/part-0.parquet")
+# Read --------------------------------------------------------------------
 
-glimpse(i)
+meteo_vars <- read_parquet(paste0("/n/dominici_nsaph_l3/Lab/data/",
+"data_warehouse/dw_dorieh_climate/data/county/year=2018/part-0.parquet"))
 
-i <- i %>% select(state, county, observation_date, tmmn, tmmx, pr, vs)
+# Select cols, write ------------------------------------------------------
 
-write_rds(i, here('data', 'meteo_vars.RDS'))
+meteo_vars <- meteo_vars %>%
+  select(state, county, observation_date, tmmn, tmmx, pr, vs)
+
+write_rds(meteo_vars, here('data', 'meteo_vars.RDS'))
 

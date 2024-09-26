@@ -2,7 +2,8 @@
 # cvd hospitalizations project
 
 # Heather
-# September 18th, 2024
+# Created: September 18th, 2024
+# Last updated: September 24th, 2024
 
 # libraries
 library(here)
@@ -21,6 +22,7 @@ options(scipen = 999)
 # add token so we can use GitHub
 gitcreds::gitcreds_set()
 gitcreds::gitcreds_get()
+gitcreds::gitcreds_delete()
 
 # create symlinks for 2018 denom and hospitalization files
 # denom file
@@ -68,5 +70,3 @@ if (file.exists(link_name_hosp)) {
     cat("Failed to create symbolic link.\n")
   }
 }
-
-
