@@ -1,0 +1,6 @@
+/data
+*.csv
+*.nc
+*.rst
+*.RDS
+.Rproj.user
