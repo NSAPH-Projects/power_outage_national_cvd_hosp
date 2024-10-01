@@ -4,3 +4,4 @@
 *.rst
 *.RDS
 .Rproj.user
+.DS_Store
