@@ -1,140 +1,87 @@
-# Expand Out Power Outages
+# This file contains all helper functions for power outage exposure data 
+# cleaning.
 
-# This script expands power outage data into a time series, from its raw
-# form where the dataset only includes entries for changes in customers_out.
-# It does this one county at a time, and saves each expanded county
-# in the 'expanded counties' folder in the 'data' folder.
-
-# Last updated: Oct 3rd, 2024
 # Author: Heather
-# Memory to run: ~50 GB? sorry lol ten min periods for 4 years is a lot of data
-# about 900 milion obs. per county. no way around that when we're optimizing 
-# for speed and we own a big computer :)
+# Last updated: Oct 2nd, 2024
 
-# Libraries ---------------------------------------------------------------
+pacman::p_load(sf, here, tidyverse)
 
-# i pacmaned in all these scripts for u lauren
-pacman::p_load(tidyverse, zoo, here, lubridate, data.table, imputeTS, fst)
+# Functions ---------------------------------------------------------------
 
-# Constants ---------------------------------------------------------------
+# helper lol - need this bc max needs more options in R :( 
+# this function returns the maximum of a numeric variable if there is one, and 
+# if all the entries in a vector are NA, it returns NA_real_ instead of Inf
+my.max <- function(x) {
+  if (sum(is.na(x)) == length(x)) {
+    return(NA_real_)
+  } else {
+    return(max(x, na.rm = TRUE))
+  }
+}
 
-# just to make sure we make the same chunks each time
-set.seed(7)
+# another helper - this function takes in a year and generates a data.table
+# containing rows for a 10 min time series starting from jan 1 till dec 31
+generate_intervals <- function(year) {
+  start_time <- ymd_hms(paste0(year, "-01-01 00:00:00"))
+  end_time <- ymd_hms(paste0(year, "-12-31 23:50:00"))
+  seq(start_time, end_time, by = "10 mins")
+}
 
-# we will make a version of the time series with customers out counts that 
-# have last obs carried forward, but we will impute a maximum of 4 hours 
-hour_thrshld <- dhours(4)
-max_nas_to_impute <- hour_thrshld / dminutes(x = 10)
-start <- Sys.time()
 
-# Helpers -----------------------------------------------------------------
+# expand helpers ----------------------------------------------------------
 
-# Prep --------------------------------------------------------------------
+# this pulls out a subset of the pous data for processing
+get_chunk <- function(raw_pous_data, chunk_list, list_position, current_year){
+  pous_chunk <- raw_pous_data[five_digit_fips %in% chunk_list[[list_position]]]
+  pous_chunk <- pous_chunk[, year := lubridate::year(recorded_date_time)]
+  pous_chunk <- pous_chunk[year == current_year]
+  return(pous_chunk)
+}
 
-# generate intervals for years we care about to join onto 
-#intervals_2017 <- generate_intervals(2017)
-intervals_2018 <- generate_intervals(2018)
-#intervals_2019 <- generate_intervals(2019)
-#intervals_2020 <- generate_intervals(2020)
 
-# all_intervals <-
-#   c(intervals_2017,
-#     intervals_2018,
-#     intervals_2019,
-#     intervals_2020)
-
-all_intervals <- c(intervals_2018)
-
-# make backbone data.table with 10 min time series for all relevant years
-intervals_dt <- data.table(date = all_intervals)
-
-# Data --------------------------------------------------------------------
-
-# read in raw data with cleaned names 
-pous_data <-
-  read_fst(
-    here(
-      "data",
-      "power_outage_exposure_data_cleaning_output",
-      "raw_with_fips.fst"
-    )
-  ) |>
-  as.data.table() 
-
-# unique ids: fips codes for county, and city_name and utility_name together 
-# for the city-utility unit
-
-# have to expand this data in chunks due to R's vector limits
-# want min number of chunks without exceeding the limit for max performance
-# going with ~ 150 chunks
-pous_list <- sort(unique(pous_data$five_digit_fips))
-pous_l_split <- split(pous_list, ceiling(seq_along(pous_list) / 20))
-
-# Do ----------------------------------------------------------------------
-
-final_customer_served_est <- # going to save customers served est as we go
-  vector(mode = "list", length = length(pous_l_split))
-
-#pous_data <- split(pous_data, by = 'fips')
-
-for (i in 1:length(pous_l_split)) {
-  start = Sys.time()
-  # separate chunk
-  pous_dat_chunk <- pous_data[five_digit_fips %in% pous_l_split[[i]]]
-  pous_dat_chunk <- pous_dat_chunk[, year := lubridate::year(recorded_date_time)]
-  pous_dat_chunk <- pous_dat_chunk[year == 2018]
-  
-  # section 1: create timeseries  -------------------------------------------
-  
-  # make id for city-utility-year
-  make_id <- unique(
+# this creates city-utility ids for a chunk of the pous data
+get_unique_city_utilities <- function(pous_dat_chunk) {
+  id_frame <- unique(
     pous_dat_chunk[, .(clean_state_name,
                        clean_county_name,
-                       fips,
+                       five_digit_fips,
                        city_name,
                        utility_name)],
     by = c(
       "clean_state_name",
       "clean_county_name",
-      "fips",
+      "five_digit_fips",
       "city_name",
       "utility_name"
     )
   )
-  
-  # make year data.table
-  years <- data.table(year = 2018)
-  
-  # expand this to a datatable containing one entry for every city-utility
-  # and year, so four entries per city-utility
-  make_id <- 
-    make_id[, .(year = years$year), by = .(clean_state_name,
-                                           clean_county_name,
-                                           fips,
-                                           city_name,
-                                           utility_name)]
-  
-  # add unique ID
-  make_id <- make_id[, city_utility_name_id := 1:.N]
-  
-  
-  # expand the datatable into a timeseries of intervals for every year - SLOW -----
+  id_frame <- id_frame[, city_utility_name_id := 1:.N]
+  return(id_frame)
+}
+
+# this creates a ten-min time series backbone for a chunk of the POUS data
+create_ten_min_series <- function(id_frame, intervals_dt){
   city_utility_time_series <-
-    make_id[, .(date = intervals_dt$date), by = .(
+    id_frame[, .(date = intervals_dt$date), by = .(
       clean_state_name,
       clean_county_name,
-      fips,
+      five_digit_fips,
       city_name,
       utility_name,
       city_utility_name_id
     )]
-  
+  return(city_utility_time_series)
+}
+
+
+# this identifies missing data in POUS dataframe 
+id_missing_obs <- function(pous_dat_chunk){
   # order the pous data.table so we can correctly identify missing 
   # observation indicators 
   pous_dat_chunk <- pous_dat_chunk[order(
     clean_state_name,
     clean_county_name,
-    fips,
+    five_digit_fips,
     city_name,
     utility_name,
     recorded_date_time,
@@ -145,7 +92,7 @@ for (i in 1:length(pous_l_split)) {
   pous_dat_chunk[, index := 1:.N, by = c(
     "clean_state_name",
     "clean_county_name",
-    "fips",
+    "five_digit_fips",
     "city_name",
     "utility_name",
     "recorded_date_time"
@@ -164,7 +111,11 @@ for (i in 1:length(pous_l_split)) {
     recorded_date_time + minutes(10),
     recorded_date_time
   )]
+  return(pous_dat_chunk)
+}
 
+expand_to_10_min_intervals <- function(pous_dat_chunk){
+  
   # change the datetime to correct class
   pous_dat_chunk[, datetime := lubridate::as_datetime(datetime)]
   
@@ -194,7 +145,7 @@ for (i in 1:length(pous_l_split)) {
     pous_dat_chunk,
     clean_state_name,
     clean_county_name,
-    fips,
+    five_digit_fips,
     city_name,
     utility_name,
     datetime
@@ -204,18 +155,18 @@ for (i in 1:length(pous_l_split)) {
   pous_dat_chunk <-
     pous_dat_chunk[, .SD[.N], by = .(clean_state_name,
                                      clean_county_name,
-                                     fips,
+                                     five_digit_fips,
                                      city_name,
                                      utility_name,
                                      date)]
   
   # delete old unnecessary cols
   pous_dat_chunk[, 
-    c("datetime",
-    "hour",
-    "day",
-    "month",
-    "index") := NULL]
+                 c("datetime",
+                   "hour",
+                   "day",
+                   "month",
+                   "index") := NULL]
   
   # now expand out the dates that are in the data.table to make a complete 
   # list of ten-minute intervals, from the first to last observation for each 
@@ -225,34 +176,44 @@ for (i in 1:length(pous_l_split)) {
                                   max(date), by = '10 mins')),
                    by =  c("clean_state_name",
                            "clean_county_name",
-                           "fips",
+                           "five_digit_fips",
                            "city_name",
                            "utility_name")]
-  
   # join the power outage data back to that date backbone, rolling to fill in 
   pous_dat_chunk <-
     pous_dat_chunk[all_dates_in_data, on = .(clean_state_name,
                                              clean_county_name,
                                              city_name,
                                              utility_name,
-                                             fips,
+                                             five_digit_fips,
                                              date), roll = TRUE]
+  return(pous_dat_chunk)
+}
+
+add_NAs_to_chunk <- function(pous_data){
   # replace -99 marker with NA 
   pous_dat_chunk[, customers_out_api_on :=
                    ifelse(customers_out == -99, NA, customers_out)]
+  return(pous_dat_chunk)
   
-  # need to join to original backbone now to get all time we're supposed to have # flag - slow
+}
+
+expand_to_full_year <- function(pous_dat_chunk, city_utility_time_series){
+  # need to join to original backbone now to get all time we're supposed to have 
+  # flag - slow
   pous_dat_chunk <- pous_dat_chunk[city_utility_time_series, on = c(
     'clean_state_name',
     "clean_county_name",
-    "fips",
+    "five_digit_fips",
     "city_name",
     "utility_name",
     "date"
   )]
-  
-  pous_dat_chunk[, year := lubridate::year(date)] 
-  
+  return(pous_dat_chunk)
+}
+
+# add last observation carried forward to time series in chunk
+add_locf_to_chunk <- function(pous_dat_chunk, max_nas_to_impute){
   # add locf by city-utility, max 4 hours
   pous_dat_chunk[, new_locf_rep := na_locf(
     customers_out_api_on,
@@ -261,35 +222,37 @@ for (i in 1:length(pous_l_split)) {
     maxgap = max_nas_to_impute
   ), by = c("clean_state_name",
             "clean_county_name",
-            "fips",
+            "five_digit_fips",
             "city_name",
             "utility_name")]
   
   pous_dat_chunk[, c("minute", "recorded_date_time") := NULL]
-  
-  # section 2: add customer served estimates --------------------------------
+  return(pous_dat_chunk)
+}
 
+calculate_customer_served_est <- function(pous_dat_chunk){
+  
   # get max customers served by city-utility
   pous_dat_chunk[, 
-    c("max_customers_tracked_city_u", 
-      "max_customer_out_city_u") :=
-      list(my.max(customers_tracked), 
-           my.max(new_locf_rep)), 
-    by = c(
-      "clean_state_name",
-      "clean_county_name",
-      "fips",
-      "city_name",
-      "utility_name",
-      "year")
-    ]
+                 c("max_customers_tracked_city_u", 
+                   "max_customer_out_city_u") :=
+                   list(my.max(customers_tracked), 
+                        my.max(new_locf_rep)), 
+                 by = c(
+                   "clean_state_name",
+                   "clean_county_name",
+                   "five_digit_fips",
+                   "city_name",
+                   "utility_name",
+                   "year")
+  ]
   
   # select out into a separate datatable
   chunk <-
     pous_dat_chunk[, .(
       clean_state_name,
       clean_county_name,
-      fips,
+      five_digit_fips,
       city_name,
       utility_name,
       year,
@@ -302,7 +265,7 @@ for (i in 1:length(pous_l_split)) {
     by =  c(
       "clean_state_name",
       "clean_county_name",
-      "fips",
+      "five_digit_fips",
       "city_name",
       "utility_name",
       "max_customers_tracked_city_u",
@@ -319,37 +282,38 @@ for (i in 1:length(pous_l_split)) {
                na.rm = T),  by = c(
                  "clean_state_name",
                  "clean_county_name",
-                 "fips",
+                 "five_digit_fips",
                  "city_name",
                  "utility_name",
                  "year")]
   
   chunk[,c("max_customers_tracked_city_u",
-                    "max_customer_out_city_u") := NULL]
+           "max_customer_out_city_u") := NULL]
   
   chunk <- chunk[, .(
     county_cust_served_est = sum(city_utility_customers_served_est, na.rm = TRUE)
-  ), by = .(clean_state_name, clean_county_name, fips, year)]
-
-  
-  final_customer_served_est[[i]] <- chunk # save separately
+  ), by = .(clean_state_name, clean_county_name, five_digit_fips, year)]
   
   # join back estimates to main datatable
   pous_dat_chunk <- pous_dat_chunk[chunk, on =  c(
     "clean_state_name",
     "clean_county_name",
-    "fips",
+    "five_digit_fips",
     "year"
   )]  
   
-  # section 3: calculate missingness ----------------------------------------
+  return(pous_dat_chunk)
+}
 
+# add estimates of person time missing by city utility to pous dat chunk
+add_person_time_missing <- function(pous_dat_chunk){
+  
   # calculate the raw number of obs missing from each city-utility
   pous_dat_chunk[, n_ten_min_missing :=
                    sum(is.na(new_locf_rep)), 
                  by = c("clean_state_name",
                         "clean_county_name",
-                        "fips",
+                        "five_digit_fips",
                         'city_utility_name_id',
                         'city_name', 
                         'utility_name',
@@ -357,39 +321,51 @@ for (i in 1:length(pous_l_split)) {
   
   # make separate data table w missingness to sum to county
   p_t_missing <- pous_dat_chunk[
-    , .(clean_state_name, clean_county_name, fips, city_name, utility_name, city_utility_name_id, year, n_ten_min_missing)
+    , .(clean_state_name, 
+        clean_county_name, 
+        five_digit_fips, 
+        city_name, 
+        utility_name, 
+        city_utility_name_id, 
+        year, 
+        n_ten_min_missing)
   ][
     , unique(.SD)
   ][
     , .(county_person_time_missing = sum(n_ten_min_missing, na.rm = TRUE)), 
-    by = .(clean_state_name, clean_county_name, fips, year)
+    by = .(clean_state_name, clean_county_name, five_digit_fips, year)
   ]
   
   # join back to original data.table
   pous_dat_chunk <- merge(
     pous_dat_chunk, 
     p_t_missing, 
-    by = c("clean_state_name", "clean_county_name", "fips", "year"), 
+    by = c("clean_state_name", "clean_county_name", "five_digit_fips", "year"), 
     all.x = TRUE
   )
-
   
-  # sum customers without power to county level 
+  return(pous_dat_chunk)
+  
+}
+
+sum_customers_out_to_county <- function(pous_dat_chunk) {
+  # sum customers without power to county level
   pous_dat_chunk <- pous_dat_chunk[, .(
     customers_out_10_min_period_locf = sum(new_locf_rep, na.rm = TRUE),
     customers_out_10_min_period_no_locf = sum(customers_out_api_on, na.rm = TRUE)
   ), by = .(
     clean_state_name,
     clean_county_name,
-    fips,
-    year,
+    five_digit_fips,
     date,
+    year,
     county_person_time_missing,
     county_cust_served_est
   )]
-  
-  # section 4: aggregate to hour --------------------------------------------
+  return(pous_dat_chunk)
+}
 
+aggregate_customers_out_to_hour <- function(pous_dat_chunk){
   # assign hour
   pous_dat_chunk[, hour := floor_date(date, unit = 'hour')]
   
@@ -405,34 +381,6 @@ for (i in 1:length(pous_l_split)) {
     county_person_time_missing = max(county_person_time_missing),
     # max because all the values are the same
     customers_served_hourly = round(max(county_cust_served_est, na.rm = TRUE), digits = 0)
-  ), by = .(clean_state_name, clean_county_name, fips, year, hour)]
-  
-  write_fst(
-    x = pous_dat_chunk,
-    path = here(
-      "power_outage_medicare_data",
-      "power_outage_medicare_data_cleaning_output",
-      'hourly_county',
-      paste0(i,"_hourly_data.fst")
-    )
-  )
-  
-  rm(pous_dat_chunk)
-  gc()
-  print(i)
-  end = Sys.time()
-  print(start - end)
+  ), by = .(clean_state_name, clean_county_name, five_digit_fips, hour)]
+  return(pous_dat_chunk)
 }
-
-
-final_customer_served_est <- rbindlist(final_customer_served_est)
-
-fwrite(
-  x = final_customer_served_est,
-  file = here(
-    "power_outage_medicare_data",
-    "power_outage_medicare_data_cleaning_output",
-    "city_utility_cust_estimates.csv")
-)
-
-stop <- Sys.time()

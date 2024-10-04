@@ -12,3 +12,14 @@ Question for Joan: are there any papers looking at rates of Medicare insurance b
 
 Another question: is there a way to distinguish between emergency and non-emergency admissions? Robbie says there is and that it's key. ok turns out you can. we should definitely do this!! 
 https://resdac.org/cms-data/variables/admission-type-code
+
+some more documentation resources:
+https://resdac.org/cms-data/variables/source-admission-inpatient-facility-newborn-admit-type-delivery-code
+https://resdac.org/cms-data/variables/inpatient-admission-type-code
+
+TODOS:
+- also need to maybe delete some unnecessary files from FASSE, like the git.ignore.txt file 
+
+Questions for Robbie:
+- should I still be loading packages at the start of each script, or should I load them all somewhere else? what's the point of pacman? 
+- how do i handle cleaning the environment while running the pipeline, since I'll have a lot of memory usage and I need to run gc() or something? 

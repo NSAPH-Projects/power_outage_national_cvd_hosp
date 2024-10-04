@@ -6,6 +6,7 @@
 # Last updated: September 24th, 2024
 
 # libraries
+library(pacman)
 library(here)
 
 # set proxies for GitHub access
@@ -22,7 +23,6 @@ options(scipen = 999)
 # add token so we can use GitHub
 gitcreds::gitcreds_set()
 gitcreds::gitcreds_get()
-gitcreds::gitcreds_delete()
 
 # create symlinks for 2018 denom and hospitalization files
 # denom file
