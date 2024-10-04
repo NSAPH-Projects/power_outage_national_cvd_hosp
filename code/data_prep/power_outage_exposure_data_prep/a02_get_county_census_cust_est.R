@@ -216,8 +216,7 @@ census_estimates <-
 
 census_estimates <-
   census_estimates %>%
-  mutate(census_customer_estimate =
-           sum(total_occupied_hh + num_of_estab, na.rm = T))
+  mutate(census_customer_estimate = total_occupied_hh + num_of_estab)
 
 # Write -------------------------------------------------------------------
 

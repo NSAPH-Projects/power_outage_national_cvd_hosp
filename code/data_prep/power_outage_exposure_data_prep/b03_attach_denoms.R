@@ -2,6 +2,9 @@
 # calculate person-coverage, and then eliminate counties with insufficient
 # coverage.
 
+# Author: Heather
+# Last updated: Oct 4th, 2024
+
 # Libraries ---------------------------------------------------------------
 
 pacman::p_load(tidyverse, here, lubridate, zoo, data.table, fst)
@@ -21,17 +24,8 @@ eia_estimates <-
       "power_outage_exposure_data_cleaning_output",
       "downscaled_county_customer_estimates.RDS"
     )
-  )
-
-# harmonize fips 
-eia_estimates <-
-  eia_estimates[, state_fips := str_pad(state_fips, 2, pad = "0")
-  ][, county_fips := str_pad(county_fips, 3, pad = '0')]
-
-eia_estimates <- 
-  eia_estimates %>%
-  mutate(fips = paste0(state_fips, county_fips)) %>%
-  select(year, fips, downscaled_county_estimate)
+  ) %>%
+  select(year, five_digit_fips, downscaled_county_estimate)
 
 # read in counties hourly data 
 counties <-
@@ -53,7 +47,8 @@ pous_based_estimates <- hourly %>%
   select(
     clean_state_name,
     clean_county_name,
-    fips,
+    five_digit_fips,
+    year,
     customers_served_hourly,
     county_person_time_missing
   ) %>% distinct()
@@ -76,7 +71,7 @@ pous_based_estimates <- pous_based_estimates %>%
 pous_based_estimates <- pous_based_estimates[, .(
   clean_state_name,
   clean_county_name,
-  fips,
+  five_digit_fips,
   year,
   hour,
   customers_served_hourly,
@@ -101,7 +96,7 @@ estimate_missing <-
   select(
     clean_state_name,
     clean_county_name,
-    fips,
+    five_digit_fips,
     year,
     customers_served_hourly,
     county_person_time_missing,
@@ -131,11 +126,11 @@ hourly <- hourly %>% filter(p_present > 0.5)
 
 # Write -------------------------------------------------------------------
 
-fwrite(
+write_rds(
   hourly,
   here(
-    "power_outage_medicare_data",
-    "power_outage_medicare_data_cleaning_output",
-    "hourly_data_with_coverage_exclusions.csv"
+    "data",
+    "power_outage_exposure_data_cleaning_output",
+    "hourly_data_with_coverage_exclusions.RDS"
   )
 )

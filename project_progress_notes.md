@@ -23,3 +23,12 @@ TODOS:
 Questions for Robbie:
 - should I still be loading packages at the start of each script, or should I load them all somewhere else? what's the point of pacman? 
 - how do i handle cleaning the environment while running the pipeline, since I'll have a lot of memory usage and I need to run gc() or something? 
+
+Oct 4th: where we are now:
+
+- it looks like the downscaled EIA customer estimates might be wrong
+- finally got a working verson of b02_expand_to_hourly working, so that's good
+- no idea if it's correct though 
+
+- need to fix the EIA estimates and GET CODE REVIEW. 
+
