@@ -4,12 +4,7 @@
 
 # Libraries ---------------------------------------------------------------
 
-library(tidyverse)
-library(here)
-library(lubridate)
-library(zoo)
-library(data.table)
-library(fst)
+pacman::p_load(tidyverse, here, lubridate, zoo, data.table, fst)
 
 my.max <- function(x)
   ifelse(!all(is.na(x)), max(x, na.rm = T), NA)
@@ -20,11 +15,11 @@ person_coverage_threshold <- 0.5
 
 # read in EIA estimates downscaled to the county level in an earlier script 
 eia_estimates <-
-  fread(
+  read_rds(
     here(
-      "power_outage_medicare_data",
-      "power_outage_medicare_data_cleaning_output",
-      "downscaled_county_customer_estimates.csv"
+      "data",
+      "power_outage_exposure_data_cleaning_output",
+      "downscaled_county_customer_estimates.RDS"
     )
   )
 
@@ -42,8 +37,8 @@ eia_estimates <-
 counties <-
   list.files(
     here(
-      "power_outage_medicare_data",
-      "power_outage_medicare_data_cleaning_output",
+      "data",
+      "power_outage_exposure_data_cleaning_output",
       "hourly_county"
     ),
     pattern = "*.fst",
