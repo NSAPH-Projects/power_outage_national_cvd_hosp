@@ -122,15 +122,13 @@ estimate_missing <-
 
 hourly <- hourly %>% left_join(estimate_missing)
 
-hourly <- hourly %>% filter(p_present > 0.5)
-
 # Write -------------------------------------------------------------------
 
-write_rds(
+write_fst(
   hourly,
   here(
     "data",
     "power_outage_exposure_data_cleaning_output",
-    "hourly_data_with_coverage_exclusions.RDS"
+    "hourly_data_with_coverage_exclusions.fst"
   )
 )

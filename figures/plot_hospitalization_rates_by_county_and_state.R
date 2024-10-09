@@ -3,12 +3,7 @@
 
 # Libraries ---------------------------------------------------------------
 
-library(here)
-library(tidyverse)
-library(sf)
-library(ggthemes)
-library(viridis)
-library(data.table)
+pacman::p_load(here, tidyverse, sf, ggthemes, viridis, data.table)
 
 # Read --------------------------------------------------------------------
 

@@ -1,13 +1,13 @@
-# Identify power outage events, defining power outage based on percentage
-# of customers out. Want the 50th percentile of customers out.
+# Identify power outage events, defining power outage based on cut point 
+# percentage of customers out and a duration. 
 
+# Author: Heather
+# Created: sometime in 2022
+# Last updated: Oct 7th, 2024
 
 # Libraries ---------------------------------------------------------------
 
-library(tidyverse)
-library(here)
-library(lubridate)
-library(data.table)
+pacman::p_load(tidyverse, here, lubridate, data.table)
 
 # Constants ---------------------------------------------------------------
 
@@ -23,9 +23,9 @@ cut_point_proportion = 0.01
 # counties <- lapply(counties, ungroup)
 
 counties <-
-  fread(here("power_outage_medicare_data",
+  read_fst(here("power_outage_medicare_data",
                 "power_outage_medicare_data_cleaning_output", 
-                "hourly_data_with_coverage_exclusions.csv"))
+                "hourly_data_with_coverage_exclusions.fst"))
 
 counties <- counties %>%
   select(

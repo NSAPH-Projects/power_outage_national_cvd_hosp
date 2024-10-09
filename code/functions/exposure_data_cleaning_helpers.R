@@ -366,3 +366,19 @@ aggregate_customers_out_to_hour <- function(pous_dat_chunk){
   ), by = .(clean_state_name, clean_county_name, five_digit_fips, year, hour)]
   return(pous_dat_chunk)
 }
+
+
+# ID outages functions ----------------------------------------------------
+
+# identify hours that are exposed to power outage 
+# can easily do all counties at once
+identify_power_outage_on_all_counties <- function(counties, cut_point) {
+  col_name <- paste0("po_on_", cut_point)
+  counties[, cutoff := customers_served_total * cut_point, by = five_digit_fips]
+  counties[, po_on := case_when(customers_out_hourly > cutoff ~ 1, TRUE ~ 0), by = five_digit_fips]
+  counties[, po_id := case_when((po_on == 1) & (lag(po_on) == 0) ~ 1, TRUE ~ 0), by = five_digit_fips]
+  counties[, po_id := case_when(po_on == 1 ~ cumsum(po_id), TRUE ~ 0), by = five_digit_fips]
+  counties[, (col_name) := po_id]
+  return(counties)
+}
+

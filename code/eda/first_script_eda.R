@@ -87,7 +87,9 @@ hosp_2017_2018 <- hosp %>%
   filter(admission_year %in% c("2017", "2018")) %>%
   select(-year)
 
-hosp_2017_2018_w_benes <- left_join(hosp_2017_2018, benes, by = c("bene_id" = "bene_id", "admission_year" = "year")) %>%
+hosp_2017_2018_w_benes <- 
+  left_join(hosp_2017_2018, benes, 
+            by = c("bene_id" = "bene_id", "admission_year" = "year")) %>%
   filter(!is.na(zip))
 
 # create diagnosis variables - un-array diagnosis variable bc diagnosis var originally array

@@ -16,7 +16,7 @@ outages <- lapply(FUN = readRDS, X = ls)
 # combine 
 combined_df <- Reduce(function(x, y)
   merge(x, y, by = c(
-    "clean_state_name", "clean_county_name", "day"
+    "clean_state_name", "clean_county_name", 'five_digit_fips', "day"
   )), outages)
 
 
