@@ -3,6 +3,34 @@
 This is the document where we write what we did, transcibe meeting notes, and 
 write next steps. 
 
+
+Oct 9th, 2024
+
+Met with Joan regarding the data cleaning. Vivian will do code review and make 
+sure that it's correct. Can ask robbie to give critical feedback on power outage 
+code.
+
+Joan suggests doing missingness checks at the hourly level rather than at the 
+10-minute level, and interpolating anything that is different between those two 
+timescales. That could help us have less missing data. 
+
+Also need to edit code to include HI and AK. Also maybe worth defining outages 
+that are 99.9th percentile of customers out or higher. 
+
+Probably want 99th percentile within county.
+
+Could help with the 
+issue of the denominator being blewn. 
+
+I sent a when2meet for a team meeting. 
+
+Still to do:
+- modify code to be missingness at the hourly level
+- plot customers out values that we have 
+- bring data into FASSE and make analytic dataset. 
+
+
+
 Oct 1st, 2024
 
 Need to clean up and add power outage data processing code to this repository, 
