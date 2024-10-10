@@ -9,11 +9,7 @@
 
 # Libraries ---------------------------------------------------------------
 
-library(here)
-library(tidyverse)
-library(arrow)
-library(data.table)
-
+pacman::p_load(here, tidyverse, arrow, data.table)
 
 # Read files --------------------------------------------------------------
 
@@ -55,35 +51,35 @@ mi <- c(icd_codes$mi_icd_10, icd_codes$mi_icd_9)
 
 # indicate hospitalizations with the codes
 hosp_info <- hosp_info[, contains_cvd_code := as.integer(
-  code_1 %in% cvd |
-    code_2 %in% cvd |
-    code_3 %in% cvd |
-    code_4 %in% cvd |
-    code_5 %in% cvd
+  code_1 %chin% cvd |
+    code_2 %chin% cvd |
+    code_3 %chin% cvd |
+    code_4 %chin% cvd |
+    code_5 %chin% cvd
 )]
 
 hosp_info <- hosp_info[, contains_resp_code := as.integer(
-  code_1 %in% resp |
-    code_2 %in% resp |
-    code_3 %in% resp |
-    code_4 %in% resp |
-    code_5 %in% resp
+  code_1 %chin% resp |
+    code_2 %chin% resp |
+    code_3 %chin% resp |
+    code_4 %chin% resp |
+    code_5 %chin% resp
 )]
 
 hosp_info <- hosp_info[, contains_stroke_code := as.integer(
-  code_1 %in% stroke |
-    code_2 %in% stroke |
-    code_3 %in% stroke |
-    code_4 %in% stroke |
-    code_5 %in% stroke
+  code_1 %chin% stroke |
+    code_2 %chin% stroke |
+    code_3 %chin% stroke |
+    code_4 %chin% stroke |
+    code_5 %chin% stroke
 )]
 
 hosp_info <- hosp_info[, contains_mi_code := as.integer(
-  code_1 %in% mi |
-    code_2 %in% mi |
-    code_3 %in% mi |
-    code_4 %in% mi |
-    code_5 %in% mi
+  code_1 %chin% mi |
+    code_2 %chin% mi |
+    code_3 %chin% mi |
+    code_4 %chin% mi |
+    code_5 %chin% mi
 )]
 
 # summarize to day-county level

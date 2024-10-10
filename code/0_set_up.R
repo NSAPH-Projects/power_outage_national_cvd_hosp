@@ -6,16 +6,11 @@
 # Last updated: September 24th, 2024
 
 # libraries
-library(pacman)
-library(here)
+pacman::p_load(here)
 
 # set proxies for GitHub access
 Sys.setenv(http_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 Sys.setenv(https_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
-
-# install tigris
-# install.packages('tigris')
-# install.packages('ggthemes')
 
 # stop R from being a lil bih about numbers
 options(scipen = 999)

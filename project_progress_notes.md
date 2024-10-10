@@ -9,6 +9,9 @@ Oct 10th:
 everything again 
 - going to do percentile based estimates today.
 
+- is there any way that we can use the emergency code to distinguish between
+visits for hypertension that are emergencies vs everyone has hypertension?
+
 Oct 9th evening:
 I finished doing missingness by hour and plotted power outage frequency in a 
 bunch of different ways. 
