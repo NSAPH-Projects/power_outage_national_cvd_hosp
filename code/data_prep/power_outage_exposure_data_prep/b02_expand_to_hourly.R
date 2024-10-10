@@ -4,7 +4,8 @@
 # form where the dataset only includes entries for changes in customers_out 
 # (see the POUS documentation for an explanation of how the raw data is
 # structured). It does this one county at a time, and saves each expanded county
-# in the 'hourly county' folder in the 'data' folder.
+# in the 'hourly county' folder in the 'data' folder. Need to clean up 
+# ordering of this script. 
 
 # Last updated: Oct 3rd, 2024
 # Author: Heather
@@ -14,7 +15,7 @@
 # i pacmaned in all these scripts for u lauren
 pacman::p_load(tidyverse, zoo, here, lubridate, data.table, fst)
 
-source(here("code", "functions", "exposure_data_cleaning_helpers.R"))
+source(here("code", "functions", "exposure_data_cleaning_helpers_oct_9.R"))
 
 # Constants ---------------------------------------------------------------
 
@@ -89,11 +90,14 @@ process_chunk <- function(i, pous_data) {
   pous_dat_chunk <- add_person_time_missing(pous_dat_chunk, 
                                             city_utilities = city_utilities)
   
-  # sum customers out to county
-  pous_dat_chunk <- sum_customers_out_to_county(pous_dat_chunk)
-  
-  # sum customers out to hour 
+  # want instead to sum customers out to hour here 
   pous_dat_chunk <- aggregate_customers_out_to_hour(pous_dat_chunk)
+  
+  # want to calculate person time missing at the hourly level here 
+  pous_dat_chunk <- add_person_time_missing_hourly(pous_dat_chunk)
+  
+  # sum customers out to county
+  pous_dat_chunk <- sum_customers_out_to_county_hourly(pous_dat_chunk)
   
   # write the chunk
   write_fst(

@@ -8,6 +8,7 @@
 # Libraries ---------------------------------------------------------------
 
 pacman::p_load(tidyverse, here, lubridate, data.table, fst)
+source(here('code', 'functions', 'exposure_data_cleaning_helpers.R'))
 
 # Read --------------------------------------------------------------------
 
@@ -25,7 +26,7 @@ counties <-
     year,
     hour,
     customers_out_hourly = customers_out_hourly_locf,
-    customers_served_total = customers_served_estimate_to_use
+    customers_served_total = downscaled_county_estimate
   )]
 
 # Continuous measures -----------------------------------------------------

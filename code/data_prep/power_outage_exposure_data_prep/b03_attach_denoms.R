@@ -49,8 +49,8 @@ pous_based_estimates <- hourly %>%
     clean_county_name,
     five_digit_fips,
     year,
-    customers_served_hourly,
-    county_person_time_missing
+    customers_served_county,
+    county_person_time_missing_hours,
   ) %>% distinct()
 
 # Do ----------------------------------------------------------------------
@@ -61,7 +61,8 @@ pous_based_estimates <- pous_based_estimates %>% left_join(eia_estimates)
 pous_based_estimates <- pous_based_estimates %>%
   mutate(
     too_big = case_when(
-      customers_served_hourly > downscaled_county_estimate ~ customers_served_hourly /
+      customers_served_county > downscaled_county_estimate ~ 
+        customers_served_county /
         downscaled_county_estimate,
       T ~ 0
     )
@@ -74,8 +75,8 @@ pous_based_estimates <- pous_based_estimates[, .(
   five_digit_fips,
   year,
   hour,
-  customers_served_hourly,
-  county_person_time_missing,
+  customers_served_county,
+  county_person_time_missing_hours,
   downscaled_county_estimate,
   too_big
 )]
@@ -84,7 +85,7 @@ pous_based_estimates <- pous_based_estimates[, .(
 pous_based_estimates <- pous_based_estimates %>%
   mutate(
     customers_served_estimate_to_use = case_when(
-      too_big < 2 ~ customers_served_hourly,
+      too_big < 2 ~ customers_served_county,
       T ~ downscaled_county_estimate
     )
   )
@@ -98,8 +99,8 @@ estimate_missing <-
     clean_county_name,
     five_digit_fips,
     year,
-    customers_served_hourly,
-    county_person_time_missing,
+    customers_served_county,
+    county_person_time_missing_hours,
     downscaled_county_estimate,
     customers_served_estimate_to_use
   ) %>%
@@ -113,8 +114,7 @@ estimate_missing <-
     # hrs that should be in the dataset
     hrs_served = customers_served_estimate_to_use * 365 * 24,
     # person-hrs that should be in the dataset
-    hrs_actually_served = hrs_served - (county_person_time_missing /
-                                          6),
+    hrs_actually_served = hrs_served - (county_person_time_missing_hours),
     # subtract missing hrs
     p_present = hrs_actually_served / expected_hrs
   ) # percentage served out of total hrs
@@ -130,5 +130,23 @@ write_fst(
     "data",
     "power_outage_exposure_data_cleaning_output",
     "hourly_data_with_coverage_exclusions.fst"
+  )
+)
+
+
+# also write a denom frame
+estimate_missing <-
+  estimate_missing %>%
+  select(five_digit_fips,
+         year,
+         county_customers = downscaled_county_estimate,
+         percent_served = p_present)
+
+write_fst(
+  estimate_missing,
+  here(
+    'data',
+    'power_outage_exposure_data_cleaning_output',
+    'county_customer_denoms_and_p_missing.fst'
   )
 )

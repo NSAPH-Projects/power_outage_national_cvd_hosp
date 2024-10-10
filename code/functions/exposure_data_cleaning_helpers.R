@@ -272,15 +272,19 @@ calculate_customer_served_est <- function(pous_dat_chunk){
   chunk[,c("max_customers_tracked_city_u",
            "max_customer_out_city_u") := NULL]
   
-  chunk <- chunk[, .(
-    county_cust_served_est = sum(city_utility_customers_served_est, na.rm = TRUE)
-  ), by = .(city_utility_name_id, year)]
-  
+  # chunk <- chunk[, .(
+  #   county_cust_served_est = sum(city_utility_customers_served_est, 
+  #                                na.rm = TRUE)
+  # ), by = .(city_utility_name_id, year)]
+  # 
   # join back estimates to main datatable
   pous_dat_chunk <- pous_dat_chunk[chunk, on =  c(
     "city_utility_name_id",
     "year"
   )]  
+  
+  pous_dat_chunk[,c("max_customers_tracked_city_u",
+           "max_customer_out_city_u") := NULL]
   
   return(pous_dat_chunk)
 }
@@ -314,13 +318,22 @@ add_person_time_missing <- function(pous_dat_chunk, city_utilities){
   ][
     , unique(.SD)
   ][
-    , .(county_person_time_missing = sum(n_ten_min_missing, na.rm = TRUE)), 
+    , .(county_person_time_missing_ten_min_periods = 
+          sum(n_ten_min_missing, na.rm = TRUE)), 
     by = .(clean_state_name, clean_county_name, five_digit_fips, year)
   ]
   
   # join back to original data.table
-  setkey(pous_dat_chunk, clean_state_name, clean_county_name, five_digit_fips, year)
-  setkey(p_t_missing, clean_state_name, clean_county_name, five_digit_fips, year)
+  setkey(pous_dat_chunk,
+         clean_state_name,
+         clean_county_name,
+         five_digit_fips,
+         year)
+  setkey(p_t_missing,
+         clean_state_name,
+         clean_county_name,
+         five_digit_fips,
+         year)
   
   # Perform the left join using the [] syntax
   pous_dat_chunk <- p_t_missing[pous_dat_chunk]
@@ -329,43 +342,103 @@ add_person_time_missing <- function(pous_dat_chunk, city_utilities){
   
 }
 
-sum_customers_out_to_county <- function(pous_dat_chunk) {
-  # sum customers without power to county level
+aggregate_customers_out_to_hour <- function(pous_dat_chunk) {
+  # assign hour
+  pous_dat_chunk[, hour := floor_date(date, unit = 'hour')]
+  
+  # alternative agg to hour
   pous_dat_chunk <- pous_dat_chunk[, .(
-    customers_out_10_min_period_locf = sum(new_locf_rep, na.rm = TRUE),
-    customers_out_10_min_period_no_locf = sum(customers_out_api_on, na.rm = TRUE)
+    customers_out_hourly_locf = round(mean(new_locf_rep, na.rm = TRUE), 
+                                      digits = 0),
+    customers_out_hourly_no_locf = round(mean(customers_out_api_on, na.rm = TRUE), 
+                                         digits = 0)
   ), by = .(
     clean_state_name,
     clean_county_name,
     five_digit_fips,
-    date,
     year,
-    county_person_time_missing,
-    county_cust_served_est
+    city_name,
+    utility_name,
+    city_utility_name_id,
+    city_utility_customers_served_est,
+    county_person_time_missing_ten_min_periods,
+    hour
   )]
   return(pous_dat_chunk)
 }
 
-aggregate_customers_out_to_hour <- function(pous_dat_chunk){
-  # assign hour
-  pous_dat_chunk[, hour := floor_date(date, unit = 'hour')]
+
+# add estimates of person time missing by city utility to pous dat chunk at 
+# the hourly level 
+add_person_time_missing_hourly <- function(pous_dat_chunk){
   
-  # alternative agg to hour 
+  # calculate the raw number of obs missing from each city-utility
+  pous_dat_chunk[, n_hrs_missing :=
+                   sum(is.na(customers_out_hourly_locf)), 
+                 by = c("clean_state_name",
+                        "clean_county_name",
+                        "five_digit_fips",
+                        'city_utility_name_id',
+                        'city_name', 
+                        'utility_name',
+                        'year')]
+  
+  # make separate data table w missingness to sum to county
+  p_t_missing <- pous_dat_chunk[
+    , .(clean_state_name, 
+        clean_county_name, 
+        five_digit_fips, 
+        city_name, 
+        utility_name, 
+        city_utility_name_id, 
+        year, 
+        n_hrs_missing)
+  ][
+    , unique(.SD)
+  ][
+    , .(county_person_time_missing_hours = sum(n_hrs_missing, na.rm = TRUE)), 
+    by = .(clean_state_name, clean_county_name, five_digit_fips, year)
+  ]
+  
+  # join back to original data.table
+  setkey(pous_dat_chunk,
+         clean_state_name,
+         clean_county_name,
+         five_digit_fips,
+         year)
+  setkey(p_t_missing,
+         clean_state_name,
+         clean_county_name,
+         five_digit_fips,
+         year)
+  
+  # Perform the left join using the [] syntax
+  pous_dat_chunk <- p_t_missing[pous_dat_chunk]
+  
+  return(pous_dat_chunk)
+  
+}
+
+
+sum_customers_out_to_county_hourly <- function(pous_dat_chunk) {
+  # sum customers without power to county level
   pous_dat_chunk <- pous_dat_chunk[, .(
-    customers_out_hourly_locf = round(mean(
-      customers_out_10_min_period_locf, na.rm = TRUE
-    ), digits = 0),
-    customers_out_hourly_no_locf = round(
-      mean(customers_out_10_min_period_no_locf, na.rm = TRUE),
-      digits = 0
-    ),
-    county_person_time_missing = max(county_person_time_missing),
-    # max because all the values are the same
-    customers_served_hourly = round(max(county_cust_served_est, na.rm = TRUE), 
-                                    digits = 0)
-  ), by = .(clean_state_name, clean_county_name, five_digit_fips, year, hour)]
+    customers_out_hourly_locf = sum(customers_out_hourly_locf, na.rm = TRUE),
+    customers_out_hourly_no_locf = sum(customers_out_hourly_no_locf, 
+                                              na.rm = TRUE),
+    customers_served_county = sum(city_utility_customers_served_est, 
+                                  na.rm = TRUE)
+  ), by = .(
+    clean_state_name,
+    clean_county_name,
+    five_digit_fips,
+    hour,
+    year,
+    county_person_time_missing_hours
+  )]
   return(pous_dat_chunk)
 }
+
 
 
 # ID outages functions ----------------------------------------------------
@@ -374,10 +447,14 @@ aggregate_customers_out_to_hour <- function(pous_dat_chunk){
 # can easily do all counties at once
 identify_power_outage_on_all_counties <- function(counties, cut_point) {
   col_name <- paste0("po_on_", cut_point)
-  counties[, cutoff := customers_served_total * cut_point, by = five_digit_fips]
-  counties[, po_on := case_when(customers_out_hourly > cutoff ~ 1, TRUE ~ 0), by = five_digit_fips]
-  counties[, po_id := case_when((po_on == 1) & (lag(po_on) == 0) ~ 1, TRUE ~ 0), by = five_digit_fips]
-  counties[, po_id := case_when(po_on == 1 ~ cumsum(po_id), TRUE ~ 0), by = five_digit_fips]
+  counties[, cutoff := customers_served_total * cut_point, 
+           by = five_digit_fips]
+  counties[, po_on := case_when(customers_out_hourly > cutoff ~ 1, TRUE ~ 0), 
+           by = five_digit_fips]
+  counties[, po_id := case_when((po_on == 1) & (lag(po_on) == 0) ~ 1, TRUE ~ 0), 
+           by = five_digit_fips]
+  counties[, po_id := case_when(po_on == 1 ~ cumsum(po_id), TRUE ~ 0), 
+           by = five_digit_fips]
   counties[, (col_name) := po_id]
   return(counties)
 }

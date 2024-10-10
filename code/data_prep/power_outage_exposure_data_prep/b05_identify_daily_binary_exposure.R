@@ -26,7 +26,7 @@ counties <-
     year,
     hour,
     customers_out_hourly = customers_out_hourly_locf,
-    customers_served_total = customers_served_estimate_to_use
+    customers_served_total = downscaled_county_estimate
   )]
 
 # Get exposures -----------------------------------------------------------
@@ -40,13 +40,19 @@ exposure_8_hrs <- lapply(cut_points, function(cut_point) {
   get_exposure(counties, cut_point, outage_duration = hours(8)) 
 })
 
+print('8 hrs done')
+
 exposure_12_hrs <- lapply(cut_points, function(cut_point) {
   get_exposure(counties, cut_point, outage_duration = hours(12))  
 })
 
+print('12 hrs done')
+
 exposure_4_hrs <- lapply(cut_points, function(cut_point) {
   get_exposure(counties, cut_point, outage_duration = hours(4))  
 })
+
+print('12 hrs done')
 
 # Join --------------------------------------------------------------------
 

@@ -1,14 +1,33 @@
 # power_outage_national_cvd_hosp progress notes 
 
-This is the document where we write what we did, transcibe meeting notes, and 
+This is the document where we write what we did, transcribe meeting notes, and 
 write next steps. 
 
+Oct 10th: 
+- meeting scheduled. 
+- going to include hawaii and alaska after code review bc I don't want to run 
+everything again 
+- going to do percentile based estimates today.
+
+Oct 9th evening:
+I finished doing missingness by hour and plotted power outage frequency in a 
+bunch of different ways. 
+Still need to:
+- include hawaii and alaska
+- estimate what proportion of customers we're actually covering with downscaled
+county estimates and EIA data (done: answer: around 70%, 67.6% of EIA customers.)
+- identify outages based on percentile
+- bring things into FASSE 
+
+Okay so for the missingness but interpolating over the hour, we'll need to 
+change the order in which we summarize the county data. We'll ignore the 
+missingness estimates that we've made so far. 
 
 Oct 9th, 2024
 
 Met with Joan regarding the data cleaning. Vivian will do code review and make 
-sure that it's correct. Can ask robbie to give critical feedback on power outage 
-code.
+sure that it's correct. Can ask Robbie to give critical feedback on power outage 
+code, and maybe attend some team meetings?
 
 Joan suggests doing missingness checks at the hourly level rather than at the 
 10-minute level, and interpolating anything that is different between those two 
@@ -16,11 +35,9 @@ timescales. That could help us have less missing data.
 
 Also need to edit code to include HI and AK. Also maybe worth defining outages 
 that are 99.9th percentile of customers out or higher. 
-
 Probably want 99th percentile within county.
 
-Could help with the 
-issue of the denominator being blewn. 
+Could help with the issue of the denominator being blewn. 
 
 I sent a when2meet for a team meeting. 
 
@@ -28,6 +45,7 @@ Still to do:
 - modify code to be missingness at the hourly level
 - plot customers out values that we have 
 - bring data into FASSE and make analytic dataset. 
+- identify outages by percentile rather than cut point
 
 
 

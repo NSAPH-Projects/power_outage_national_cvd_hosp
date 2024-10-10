@@ -52,6 +52,10 @@ county_shp <- county_shp |> # save relevant info only
 county_shp <- county_shp |>
   filter(state_fips %in% cotus_state_fips_abbrev$state_fips)
 
+# reproject to albers
+epsg_code <- 5070
+county_shp <- st_transform(county_shp, crs = epsg_code)
+
 # write 
 write_rds(county_shp, here("data", "cotus_county_shp_w_fips.RDS"))
 
