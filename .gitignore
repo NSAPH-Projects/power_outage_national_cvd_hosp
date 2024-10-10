@@ -3,6 +3,7 @@
 *.nc
 *.rst
 *.RDS
+*.pdf
 .Rproj.user
 .DS_Store
 /figures
