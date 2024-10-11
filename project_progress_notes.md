@@ -3,6 +3,18 @@
 This is the document where we write what we did, transcribe meeting notes, and 
 write next steps. 
 
+Oct 11th:
+Notes on what is the primary analysis vs. sensitivity analyses.
+- primary analysis is binary power outage exposure, Y/N, on all hospitalizations
+and emergency hospitalizations, 8 hrs, cut point 3%
+- sensitivity are all other cut points and durations 
+- also do continuous hrs out analysis, where we model exposure non-linearly 
+hopefully 
+- not sure about percentile-based measurements at this point - right now all are
+zero in the analytic dataset so need to fix that 
+- going to try strata that are 4 months long to start 
+- also going to add lags for 4 days after exposure 
+
 Oct 10th: 
 - meeting scheduled. 
 - going to include hawaii and alaska after code review bc I don't want to run 
