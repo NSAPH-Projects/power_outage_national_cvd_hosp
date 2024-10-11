@@ -455,7 +455,7 @@ identify_power_outage_on_all_counties <- function(counties, cut_point) {
            by = five_digit_fips]
   counties[, po_id := case_when(po_on == 1 ~ cumsum(po_id), TRUE ~ 0), 
            by = five_digit_fips]
-  counties[, (col_name) := po_id]
+  counties[, (col_name) := po_on]
   return(counties)
 }
 
