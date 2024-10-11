@@ -59,31 +59,52 @@ for (col in exposure_columns) {
   cut_point <- str_extract(col, "0\\.\\d+")
   duration <- str_extract(col, "^\\d+")
   
-  # Extract coefficients from the model
+  # Extract coefficients and standard errors from the model
   model <- models[[col]]
   coef_summary <- summary(model)$coefficients
   
-  # Extract the coefficient for the main exposure and its lags
+  # Extract the coefficient and standard error for the main exposure and its lags
   main_coef <- coef_summary[col, "Estimate"]
+  main_se <- coef_summary[col, "Std. Error"]
   lag_coefs <- coef_summary[paste0(col, "_lag_", 1:6), "Estimate"]
+  lag_ses <- coef_summary[paste0(col, "_lag_", 1:6), "Std. Error"]
+  
+  # Calculate confidence intervals
+  main_ci_lower <- main_coef - 1.96 * main_se
+  main_ci_upper <- main_coef + 1.96 * main_se
+  lag_ci_lower <- lag_coefs - 1.96 * lag_ses
+  lag_ci_upper <- lag_coefs + 1.96 * lag_ses
   
   # Combine the information into a data.table
   summary_dt <- data.table(
     cut_point = cut_point,
     duration = duration,
     coefficient = main_coef,
+    ci_lower = main_ci_lower,
+    ci_upper = main_ci_upper,
     lag_1 = lag_coefs[1],
+    lag_1_ci_lower = lag_ci_lower[1],
+    lag_1_ci_upper = lag_ci_upper[1],
     lag_2 = lag_coefs[2],
+    lag_2_ci_lower = lag_ci_lower[2],
+    lag_2_ci_upper = lag_ci_upper[2],
     lag_3 = lag_coefs[3],
+    lag_3_ci_lower = lag_ci_lower[3],
+    lag_3_ci_upper = lag_ci_upper[3],
     lag_4 = lag_coefs[4],
+    lag_4_ci_lower = lag_ci_lower[4],
+    lag_4_ci_upper = lag_ci_upper[4],
     lag_5 = lag_coefs[5],
-    lag_6 = lag_coefs[6]
+    lag_5_ci_lower = lag_ci_lower[5],
+    lag_5_ci_upper = lag_ci_upper[5],
+    lag_6 = lag_coefs[6],
+    lag_6_ci_lower = lag_ci_lower[6],
+    lag_6_ci_upper = lag_ci_upper[6]
   )
   
   # Append to the summary list
   summary_list[[col]] <- summary_dt
 }
-
 
 # Combine all summary data.tables into one
 summary_table <- rbindlist(summary_list)
@@ -91,3 +112,29 @@ summary_table$duration <- c(8, 8, 8, 8, 4, 4, 4, 4, 12, 12, 12, 12) # could fix 
 
 # Print the summary table
 print(summary_table)
+
+summary_long <- melt(summary_table, 
+                     id.vars = c("cut_point", "duration"), 
+                     measure.vars = patterns("^lag_\\d+$", "^lag_\\d+_ci_lower$", "^lag_\\d+_ci_upper$"),
+                     variable.name = "lag",
+                     value.name = c("effect", "ci_lower", "ci_upper"))
+
+# Extract the lag number from the variable name
+summary_long[, lag := as.numeric(gsub("lag_", "", lag))]
+
+# Create the ggplot
+p <- ggplot(summary_long, aes(x = lag, y = effect, color = cut_point)) +
+  geom_hline(aes(yintercept =0)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  facet_grid(duration ~ cut_point) +
+  labs(x = "Lag", y = "poisson model coefficient", color = "power outage on
+cut point") +
+  theme_minimal() +
+  ggtitle('Association of power outage exposure with emergency respiratory and 
+cardiovascular (not hypertension) hospitalizations among medicare benes in counties 
+> 500 benes, >50% pous coverage') + labs(subtitle = "y axis right is outage duration - 4, 8, 12 hrs")
+
+# Print the plot
+print(p)
