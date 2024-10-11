@@ -13,6 +13,9 @@ pacman::p_load(here, tidyverse, arrow, data.table)
 
 # Read files --------------------------------------------------------------
 
+panel_fips <- read_rds(here('data', 'panel_for_2018.RDS')) %>%
+  rename(day = date)
+
 # read in medicare hospitalizations and beneficiaries for 2018
 benes_2018 <-
   arrow::read_parquet(here("data", "mbsf_medpar_denom_2018.parquet")) |>
@@ -28,6 +31,10 @@ icd_codes <- readRDS(here("data", "all_icd_codes.RDS"))
 hosp_info <- merge(hosp_2018, benes_2018, by = "bene_id", all.x = TRUE)
 
 # Pull ICD codes ----------------------------------------------------------
+
+# filter to hospitalizations actually dated in 2018
+hosp_info <- hosp_info %>% mutate(admission_date = as.Date(admission_date)) %>%
+  filter(admission_date %in% panel_fips$day)
 
 # get the first five ICD codes
 hosp_info <-
@@ -82,6 +89,12 @@ hosp_info <- hosp_info[, contains_mi_code := as.integer(
     code_5 %chin% mi
 )]
 
+# identify emergency vs non emergency
+hosp_info[, `:=`(
+  is_emergency = ifelse(admsn_type_cd == 1, 1, 0),
+  is_urg_or_emerg = ifelse(admsn_type_cd == 1 | admsn_type_cd == 2, 1, 0)
+)]
+
 # summarize to day-county level
 hosp_by_day_by_county <- hosp_info[, .(
   n_cvd = sum(contains_cvd_code),
@@ -91,11 +104,36 @@ hosp_by_day_by_county <- hosp_info[, .(
   by = .(admission_date, county, state)
 ]
 
+emerg_hosp_by_day_by_county <- hosp_info[is_emergency == 1]
+
+emerg_hosp_by_day_by_county <- emerg_hosp_by_day_by_county[, .(
+  n_cvd = sum(contains_cvd_code),
+  n_resp = sum(contains_resp_code),
+  n_stroke = sum(contains_stroke_code),
+  n_mi = sum(contains_mi_code)),
+  by = .(admission_date, county, state)
+]
+
+urgent_hosp_by_day_by_county <- hosp_info[is_urg_or_emerg == 1]
+
+urgent_hosp_by_day_by_county <- urgent_hosp_by_day_by_county[, .(
+  n_cvd = sum(contains_cvd_code),
+  n_resp = sum(contains_resp_code),
+  n_stroke = sum(contains_stroke_code),
+  n_mi = sum(contains_mi_code)),
+  by = .(admission_date, county, state)
+]
 
 # Write -------------------------------------------------------------------
 
 write_rds(hosp_by_day_by_county,
           here("data", "num_hosp_by_day_by_county_inc_state.RDS"))
+
+write_rds(emerg_hosp_by_day_by_county,
+          here("data", "emerg_num_hosp_by_day_by_county_inc_state.RDS"))
+
+write_rds(urgent_hosp_by_day_by_county,
+          here("data", "urg_num_hosp_by_day_by_county_inc_state.RDS"))
 
 # write denom
 benes_by_county <- benes_2018[, .(n_benes = .N), by = .(county, state)]

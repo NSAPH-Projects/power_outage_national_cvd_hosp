@@ -10,7 +10,7 @@
 # Last updated: Oct 3rd, 2024
 # Author: Heather 
 
-pacman::p_load(sf, here, tidyverse)
+pacman::p_load(sf, here, tidyverse, data.table)
 
 # set shapefile for whole project 
 # states we wish to include: just being very clear about this list 
@@ -65,3 +65,12 @@ county_list <- county_shp %>%
   distinct()
 
 write_rds(county_list, here("data", "cotus_county_list_of_fips.RDS"))
+
+# write backbone with all fips and all dates in 2018
+dates_2018 <- seq(as.Date("2018-01-01"), as.Date("2018-12-31"), by = "day")
+
+panel_fips_2018 <- 
+  CJ(five_digit_fips = county_list$five_digit_fips, date = dates_2018)
+
+write_rds(panel_fips_2018, here("data", "panel_for_2018.RDS"))
+
