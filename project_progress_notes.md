@@ -6,11 +6,14 @@ write next steps.
 Oct 10th: 
 - meeting scheduled. 
 - going to include hawaii and alaska after code review bc I don't want to run 
-everything again 
+everything again - looks like we're missing AK for weather vars as well
 - going to do percentile based estimates today.
 
 - is there any way that we can use the emergency code to distinguish between
 visits for hypertension that are emergencies vs everyone has hypertension?
+
+- i think we can run a test analysis for some exposure, though maybe we want to 
+look at outage prevalence first? analytic data is there
 
 Oct 9th evening:
 I finished doing missingness by hour and plotted power outage frequency in a 
