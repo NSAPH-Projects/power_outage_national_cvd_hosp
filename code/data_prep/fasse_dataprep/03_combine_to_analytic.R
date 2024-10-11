@@ -17,7 +17,11 @@ hosp <-
 
 outage_exposure <- 
   read_parquet(here('data', 'analytic_exposure_data_2018.parquet')) %>%
-  select(five_digit_fips, day, exposed_1_hrs_percentile:exposed_1_hrs_0.05) %>%
+  select(five_digit_fips, 
+         day, 
+         exposed_1_hrs_percentile:exposed_1_hrs_0.05, 
+         county_customers, 
+         percent_served) %>%
   mutate(day = as.Date(day))
 
 meteo <- read_parquet(here('data', 'meteo_vars.parquet')) %>%
@@ -36,10 +40,13 @@ an_dat <-
   left_join(denoms)
 
 # missing values have different meanings.
-# when power outage exposure is missing, this means we had insufficent exposure 
+# when power outage exposure is missing, this means we had insufficient exposure 
 # data for those counties and so we should exclude them 
 
 an_dat <- an_dat %>% filter(!is.na(exposed_1_hrs_0.005))
+
+# filter for low percent served
+an_dat <- an_dat %>% filter(percent_served > 0.5 & !is.na(percent_served))
 
 # when hospitalizations are missing, that means that there were no 
 # hospitalizations on those days, so we should set those to 0
@@ -55,5 +62,7 @@ an_dat <-
 # fewer than 500 benes
 
 an_dat <- an_dat %>% filter(n_benes > 500) # this removes 133 counties 
+# honestly the lines are not super stable above 500 either so not sure
+# what joan wants me to do about that. 
 
 write_rds(an_dat, here('data', 'an_dat.RDS'))
