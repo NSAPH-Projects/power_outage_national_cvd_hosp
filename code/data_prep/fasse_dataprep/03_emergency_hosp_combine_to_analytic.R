@@ -1,4 +1,5 @@
-# Create analytic dataset from exposure and outcome data
+# Create analytic dataset from exposure and outcome data for emergency
+# hospitalizations
 
 # Libraries ---------------------------------------------------------------
 
@@ -91,4 +92,4 @@ an_dat[, stratum := .GRP, by = .(five_digit_fips, day_of_week, two_month_period)
 
 # Write -------------------------------------------------------------------
 
-write_rds(an_dat, here('data', 'an_dat.RDS'))
+write_rds(an_dat, here('data', 'an_dat_emergency_hosp.RDS'))

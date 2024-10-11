@@ -1,4 +1,4 @@
-# Create analytic dataset from exposure and outcome data
+# Create analytic data from exposure and outcome for urgent hospitalizations
 
 # Libraries ---------------------------------------------------------------
 
@@ -10,7 +10,7 @@ panel_fips <- read_rds(here('data', 'panel_for_2018.RDS')) %>%
   rename(day = date)
 
 hosp <- 
-  read_rds(here("data", "emerg_num_hosp_by_day_by_county_inc_state.RDS")) %>%
+  read_rds(here("data", "num_hosp_by_day_by_county_inc_state.RDS")) %>%
   select(five_digit_fips = county, 
          day = admission_date,
          n_cvd:n_mi) 
@@ -91,4 +91,4 @@ an_dat[, stratum := .GRP, by = .(five_digit_fips, day_of_week, two_month_period)
 
 # Write -------------------------------------------------------------------
 
-write_rds(an_dat, here('data', 'an_dat.RDS'))
+write_rds(an_dat, here('data', 'an_dat_all_hosp.RDS'))
