@@ -3,6 +3,8 @@
 This is the document where we write what we did, transcribe meeting notes, and 
 write next steps. 
 
+Marianthi says we should match on every two months. don't need to go more than that 
+
 Oct 10th: 
 - meeting scheduled. 
 - going to include hawaii and alaska after code review bc I don't want to run 
