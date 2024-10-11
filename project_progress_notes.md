@@ -3,6 +3,8 @@
 This is the document where we write what we did, transcribe meeting notes, and 
 write next steps. 
 
+Marianthi says we should match on every two months. don't need to go more than that 
+
 Oct 11th:
 Notes on what is the primary analysis vs. sensitivity analyses.
 - primary analysis is binary power outage exposure, Y/N, on all hospitalizations
