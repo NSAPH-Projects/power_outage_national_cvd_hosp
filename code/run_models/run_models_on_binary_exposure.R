@@ -3,7 +3,7 @@
 
 # Libraries ---------------------------------------------------------------
 
-pacman::p_load(tidyverse, data.table, here, arrow, gnm)
+pacman::p_load(tidyverse, data.table, here, arrow, gnm, splines)
 
 # Read --------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ for (col in exposure_columns) {
       paste(
         "all_hosp ~",
         col,
-        "+ max_temp + precip + wind_speed +",
+        "+ ns(max_temp, df = 3) + ns(precip, df = 3) + ns(wind_speed, df = 3) +",
         paste0(col, "_lag_1"),
         "+",
         paste0(col, "_lag_2"),
@@ -42,7 +42,7 @@ for (col in exposure_columns) {
   model <- gnm(
     formula,
     offset = n_benes,
-    family = 'poisson',
+    family = quasipoisson(),
     eliminate = as.factor(stratum),
     data = an_dat
   )
@@ -125,8 +125,7 @@ summary_long[, lag := as.numeric(gsub("lag_", "", lag))]
 # Create the ggplot
 p <- ggplot(summary_long, aes(x = lag, y = effect, color = cut_point)) +
   geom_hline(aes(yintercept =0)) +
-  geom_point() +
-  geom_line() +
+  geom_point(size = 3) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   facet_grid(duration ~ cut_point) +
   labs(x = "Lag", y = "poisson model coefficient", color = "power outage on
