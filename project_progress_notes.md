@@ -1,9 +1,52 @@
 # power_outage_national_cvd_hosp progress notes 
 
+Notes from meeting with marianthi about additional analyses and controlling 
+for confounding:
+
+- cvd and respiratory visits have different lag patterns after heat
+- this might explain some of the lag issues we've been seeing in the one plot
+that i made
+- need to run analyses where they are separate, to see if the effects are 
+different
+- if they are, it might not make sense to run the rest of the analyses with them 
+together
+
+Before running any more models, want to also decide on exactly how to control 
+for confounding
+- temp: non-linear, that's fine, ns df = 3
+- for wind, when we are controlling for wind, we wanted to capture the 
+wind-related weather events that have an impact on hospitalizations, including hurricanes, 
+tropical cyclones, tornadoes, blizzards, gales, and other snowstorms 
+- we made a 5-category variable for wind based on the beaufort scale bc we 
+thought that reflected
+how different events would affect both power outage and hospitalization rates 
+- need to create that variable and make sure we have support in each of the five
+categories to create estimates. 
+
+- for precipitation, check that it includes snow 
+- would be associated w hospitalizations
+- don't know how related to hosp but we do know it's related to PO
+- make model of CVD and respiratory outcomes separately and see what the 
+association is between them and precip after controlling for temperature 
+- need to include a penalized spline in a gam to check this 
+- if it's linear and we do non-linear we risk overadjustment 
+
+- not sure i really understand about the wind speed 
+
+- additional analyses:
+- cvd + resp separately
+- 75 + compared to <75, that's the median age
+- effect modification by county-level DME
+- sex-stratified analyses
+- urgent + emergency, and all
+- poverty 
+
+
 This is the document where we write what we did, transcribe meeting notes, and 
 write next steps. 
 
-Marianthi says we should match on every two months. don't need to go more than that 
+Marianthi says we should match on every two months. don't need to go more than 
+that 
 
 Oct 11th:
 Notes on what is the primary analysis vs. sensitivity analyses.
