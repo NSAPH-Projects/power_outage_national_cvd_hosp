@@ -1,5 +1,11 @@
 # power_outage_national_cvd_hosp progress notes 
 
+Notes about changing b02_expand_outages:
+- needed to put in locf changes discovered while working on simulation 
+- need to check that this works with the rest of the pipeline and then
+rerun everything.
+- will take 2 hrs to rerun
+
 Notes from meeting with marianthi about additional analyses and controlling 
 for confounding:
 
