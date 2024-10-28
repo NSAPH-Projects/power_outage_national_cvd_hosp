@@ -53,7 +53,7 @@ pdf(
 for (exp_col in dif_exposure){
   
 p1 <- us_counties |>
-  #filter(p_present > 0.5) |>
+  filter(p_present > 0.5) |>
   ggplot() +
   #geom_sf(data = under_layer) +
   geom_sf(aes(fill = !!sym(exp_col)), color = NA) +

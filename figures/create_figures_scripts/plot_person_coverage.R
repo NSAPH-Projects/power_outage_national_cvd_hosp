@@ -36,7 +36,11 @@ us_counties <- us_counties |> left_join(pous)
 
 # Plot --------------------------------------------------------------------
 
-us_counties <- us_counties %>% mutate(p_present = ifelse(p_present > 1, 1, p_present))
+us_counties <- us_counties %>% 
+  mutate(p_present = case_when(p_present > 1 ~ 1,
+                               p_present < 0 ~ 0,
+                               is.na(p_present) ~ 0,
+                               T ~ p_present))
 
 under_layer <- st_geometry(us_counties)
 
@@ -45,11 +49,11 @@ p1 <- us_counties |>
   #filter(p_present > 0.5) |>
   ggplot() +
   geom_sf(data = under_layer) +
-  geom_sf(aes(fill = percent_served)) +
+  geom_sf(aes(fill = p_present)) +
   scale_fill_viridis_c(
     name = "Proportion of person-time not missing in POUS dataset; 
 grey areas are missing more than 50% of ten-minute person-periods",
-    limits = c(0.5, 1)
+    limits = c(0, 1)
   ) +
   theme_map() +
   ggtitle(
@@ -58,19 +62,23 @@ grey areas are missing more than 50% of ten-minute person-periods",
   
 
 ggsave(
-  here('figures', 'figures_output', 'person_time_coverage_hrs_oct_26.pdf'),
-  device = "pdf",
+  here('figures', 'figures_output', 'person_time_coverage_hrs_oct_26.png'),
   width = 14,
   height = 12
 )
 
 
-# try P missing -----------------------------------------------------------
 
-oo <- read_fst(here("data", "power_outage_exposure_data_cleaning_output", "county_customer_denoms_and_p_missing.fst"))
-View(oo)
+# Make tables -------------------------------------------------------------
 
-oo <- oo %>% filter(year == 2018)
-us_counties <- us_counties %>% left_join(oo)
+tables <- us_counties %>%
+  filter(year == 2018) %>%
+  mutate(
+  percentage_full = case_when(p_present == 1 ~ 1, T ~ 0),
+  percentage_20p = case_when(p_present > 0.2 ~ 1, T ~ 0)
+)
 
+
+sum(tables$p_present == 1)
+sum(tables$p_present < 0.5)
 
