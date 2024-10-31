@@ -12,7 +12,7 @@ pacman::p_load(here)
 Sys.setenv(http_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 Sys.setenv(https_proxy="http://rcproxy.rc.fas.harvard.edu:3128")
 
-# stop R from being a lil bih about numbers
+# stop R from being a lil bih about small and large numbers
 options(scipen = 999)
 
 # add token so we can use GitHub

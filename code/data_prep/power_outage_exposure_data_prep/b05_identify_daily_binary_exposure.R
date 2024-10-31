@@ -1,5 +1,8 @@
-# Identify power outage events, defining power outage based on cut point 
-# percentage of customers out and a duration. 
+# This script identifies power outage events, again producing a time series of 
+# days for each year and each county, this time indicating if each day is 
+# exposed or unexposed to power outage based on a duration and a cut point. 
+# It does this for 4+, 8+, and 12+ hour outages and cut points of 0.5% of 
+# county customers without power, as well as 1%, 3%, and 5%.
 
 # Author: Heather
 # Created: sometime in 2022

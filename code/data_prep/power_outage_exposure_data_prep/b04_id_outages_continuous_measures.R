@@ -1,5 +1,6 @@
-# Identify power outage events, defining power outage based on cut point 
-# percentage of customers out and a duration. 
+# This script produces a time series of days for 1 year for each county, 
+# tabulating how many hours without power there were on each day for a variety 
+# of cut-points defining power outage. 
 
 # Author: Heather
 # Created: sometime in 2022
@@ -8,7 +9,7 @@
 # Libraries ---------------------------------------------------------------
 
 pacman::p_load(tidyverse, here, lubridate, data.table, fst)
-source(here('code', 'functions', 'exposure_data_cleaning_helpers.R'))
+source(here('code', 'functions', 'expand_to_hourly_helpers.R'))
 
 # Read --------------------------------------------------------------------
 
@@ -53,6 +54,6 @@ hrs_out <- counties[, .(
 write_fst(hrs_out, here(
   'data',
   'power_outage_exposure_data_cleaning_output',
-  'daily_hrs_out.fst'
+  'daily_hrs_out_oct_31.fst'
 ))
 

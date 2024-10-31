@@ -1,6 +1,15 @@
-# Join customer estimates from EIA to the live customer estimate data,
-# calculate person-coverage, and then eliminate counties with insufficient
-# coverage.
+# This script joins customer estimates from EIA to the live customer estimate 
+# data, and calculates person-coverage. Person-coverage is calculated based on 
+# two numbers. The first is the maximum number of customers recorded as ‘out’ 
+# or ‘tracked’ in the POUS dataset. The second is the estimate of the number of 
+# customers that should be in that county based on the households and number of 
+# establishments in that county, and the number of electrical customers in the 
+# state from EIA. If recorded customers in the POUS data were > 2x the EIA 
+# estimates, coverage was just reported as 1. Otherwise it’s POUS estimate/EIA 
+# estimate. 
+
+# NOTE: Customers served estimates that are fed into this script are already 
+# the max of customers served and customers without power. 
 
 # Author: Heather
 # Last updated: Oct 4th, 2024
@@ -61,6 +70,7 @@ pous_based_estimates <- pous_based_estimates %>% left_join(eia_estimates)
 pous_based_estimates <- pous_based_estimates %>%
   mutate(
     too_big = case_when(
+      is.na(downscaled_county_estimate) ~ 0,
       customers_served_county > downscaled_county_estimate ~ 
         customers_served_county /
         downscaled_county_estimate,

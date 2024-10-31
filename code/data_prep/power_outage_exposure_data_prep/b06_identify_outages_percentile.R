@@ -1,5 +1,9 @@
-# Identify power outage events, defining power outage based on a percentile
-# cutoff of customers out. This is a denominator-independent exposure metric.
+# This script identifies power outage events based on a percentile rather than 
+# a cut point of % of county customers without power. This is a 
+# denominator-independent metric. It classifies a county-day as exposed to 
+# outage if customers out is in the 99.9th percentile or higher for more than 
+# 1, 2, or 4 hours. 
+
 # Author: Heather
 # Created: sometime in 2022
 # Last updated: Oct 7th, 2024

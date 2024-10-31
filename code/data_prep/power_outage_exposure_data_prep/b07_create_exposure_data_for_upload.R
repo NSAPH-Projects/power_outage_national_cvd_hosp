@@ -1,4 +1,9 @@
-# Create analytic data
+# This script combines all the exposure metrics to create an analytic dataset 
+# to upload to FASSE.
+
+# Author: Heather
+# Created: sometime in 2022
+# Last updated: Oct 7th, 2024
 
 pacman::p_load(here, tidyverse, data.table, fst, arrow)
 

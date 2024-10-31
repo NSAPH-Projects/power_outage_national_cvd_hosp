@@ -15,7 +15,7 @@
 # i pacmaned in all these scripts for u lauren
 pacman::p_load(tidyverse, zoo, here, lubridate, data.table, fst)
 
-source(here("code", "functions", "exposure_data_cleaning_helpers.R"))
+source(here("code", "functions", "expand_to_hourly_helpers.R"))
 
 # Constants ---------------------------------------------------------------
 
@@ -89,7 +89,8 @@ process_chunk <- function(i, pous_data) {
                                            max_nas_to_impute = max_nas_to_impute)
   
   # note - if a gap is longer than 4 hrs, this doesn't impute anything at all
-  # it doesn't like, add the 4 hrs, and then stop, it just doesn't impute anything
+  # it doesn't like, add the 4 hrs, and then stop, it just doesn't impute 
+  # anything, which is a bit counterintuitive but fine I think
   
   # add customer served estimates by city_utility to chunk 
   pous_dat_chunk <- calculate_customer_served_est(pous_dat_chunk)

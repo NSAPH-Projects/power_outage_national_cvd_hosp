@@ -212,7 +212,7 @@ census_estimates <-
   )
 
 # STRONG NOTE: note that Hawaii and Alaskan estimates are not reliable.
-# they are removed, along with other non-contiguous states 
+# need to consider this in later scripts 
 
 census_estimates <-
   census_estimates %>%
@@ -227,4 +227,5 @@ write_rds(
     "power_outage_exposure_data_cleaning_output",
     "county_level_census_cust_estimates.RDS"
   )
-)
+) # there are a couple counties without data, in texas and hawaii. 
+# this is expected but we need to be mindful and demure of this going forward.
