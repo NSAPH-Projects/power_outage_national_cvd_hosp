@@ -1,5 +1,19 @@
 # power_outage_national_cvd_hosp progress notes 
 
+
+Update october 31st:
+- updated power outage pipeline, but haven't checked to see if it's correct
+- suspicious that each county has same dimension, but I guess most chunks might
+be the same 
+
+Had meeting yesterday about POUS.
+Next steps in project:
+- check autocorrelation of lags for 4 and 12 hour outages as well
+- for next analyses, want to look for effect mod by DME use, poverty, age (75+ 
+vs <75), and hot and cold days, sex
+- also need to run separate analyses by cardio visits and respiratory, and 
+maybe not exclude hypertension
+
 Notes about changing b02_expand_outages:
 - needed to put in locf changes discovered while working on simulation 
 - need to check that this works with the rest of the pipeline and then
@@ -29,7 +43,7 @@ how different events would affect both power outage and hospitalization rates
 - need to create that variable and make sure we have support in each of the five
 categories to create estimates. 
 
-- for precipitation, check that it includes snow 
+- for precipitation, check that it includes snow (edited to add: IT DOES)
 - would be associated w hospitalizations
 - don't know how related to hosp but we do know it's related to PO
 - make model of CVD and respiratory outcomes separately and see what the 

@@ -26,4 +26,17 @@ meteo_vars <-
     wind_speed = vs
   )
 
+# add four category wind speed - by decile based on plot
+meteo_vars <-
+  meteo_vars %>%
+  mutate(p_wind_speed = ntile(wind_speed, 10)) %>%
+  mutate(
+    four_cat_wind_speed = case_when(
+      p_wind_speed <= 7 ~ 1,
+      p_wind_speed == 8 ~ 2,
+      p_wind_speed == 9 ~ 3,
+      p_wind_speed == 10 ~ 4
+    )
+  )
+
 write_parquet(meteo_vars, here('meteo_vars.parquet'))

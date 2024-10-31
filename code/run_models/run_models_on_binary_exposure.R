@@ -7,7 +7,7 @@ pacman::p_load(tidyverse, data.table, here, arrow, gnm, splines)
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_emergency_hosp.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp.RDS'))
 an_dat <- an_dat %>% mutate(all_hosp = n_cvd + n_resp)
 
 # binary exposures 
