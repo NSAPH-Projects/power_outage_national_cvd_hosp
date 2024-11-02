@@ -13,7 +13,7 @@ pacman::p_load(here, tidyverse, arrow, data.table)
 
 # Read files --------------------------------------------------------------
 
-panel_fips <- read_rds(here('data', 'panel_for_2018.RDS')) %>%
+panel_fips <- read_rds(here('data_for_upload', 'panel_for_2018.RDS')) %>%
   rename(day = date)
 
 # read in medicare hospitalizations and beneficiaries for 2018
