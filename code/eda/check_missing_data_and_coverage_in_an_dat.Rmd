@@ -1,5 +1,5 @@
 ---
-title: "Check how much data is missing in POUS"
+title: "Check how much data is missing in POUS, and calculate coverage"
 output: html_document
 date: "2024-11-02"
 ---
@@ -52,12 +52,105 @@ denoms <- denoms %>%
 
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r}
+total_customers <-
+  denoms %>%
+  group_by(year) %>%
+  summarize(
+    total_cust = sum(county_customers, na.rm = T),
+    total_cust_coverage = sum(customer_count_served, na.rm = T),
+    total_cust_coverage_w_exclusion = 
+      sum(customer_count_served_wo_less_50_p, na.rm = T),
+    proportion_served = total_cust_coverage / total_cust,
+    proportion_served_w_exclusion = total_cust_coverage_w_exclusion / total_cust
+  )
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+total_customers <- total_customers %>%
+  left_join(eia) %>%
+  mutate(proportion_served_eia_denom =
+           total_cust_coverage_w_exclusion / total_customers_from_eia)
+
+total_customers %>% knitr::kable()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Great but we also need to check coverage where the denominator is not just counties that made it into the POUS dataset, but rather everyone. Need EIA state totals. This is because there were a couple counties without establishments or people, so shouldn't make a huge difference. 
+
+```{r}
+# eia totals
+eia_totals <-
+  read_rds(
+    here(
+      "data_for_upload",
+      "power_outage_exposure_data_cleaning_output",
+      "eia_state_total_customers_by_year.RDS"
+    )
+  ) 
+
+eia_totals <- 
+  eia_totals %>%
+  group_by(year) %>%
+  summarize(n_cust_eia_state_totals = sum(eia_state_total_cust, na.rm = T))
+
+total_cust <- total_customers %>%
+  left_join(eia_totals) %>%
+  mutate(proportion_served_denom_is_everyone =
+           total_cust_coverage_w_exclusion / n_cust_eia_state_totals)
+
+total_cust %>% knitr::kable()
+
+```
+
+Oh they're literally the same LOL. 
+
+In conclusion, in 2018 the dataset after excluding counties w 50% coverage or less (50% customer-hours present or less) results in 67.47% of electrical customers being in the dataset.
+
+Okay cool now what about coverage of medicare benes and also coverage after we exclude counties w < 500 medicare benes?
+
+```{r}
+# going to read in the denom dataset
+benes_by_county <- read_rds(here('data', 'benes_by_county_fips.RDS'))
+length(unique(benes_by_county$county))
+sum(benes_by_county$n_benes)
+```
+
+This is all counties in the medicare dataset. This is strange though because there should be more people according to the internet. This is 33 million people, and the internet says that there were 45 million >65 medicare benes in 2018. NEED TO INVESTIGATE THIS!!!! 
+
+```{r}
+# and going to read in analytic dataset which exlcudes counties w less coverage
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp.RDS'))
+o <- an_dat %>% select(five_digit_fips, n_benes) %>% distinct()
+sum(o$n_benes)
+sum(o$n_benes)/sum(benes_by_county$n_benes)
+
+```
+
+We're covering 70% of Medicare beneficiaries, if indeed this dataset is complete. 
+
+Where does the dataset fit into our simulation grid?
+Total percent missing is ~ 30%.
+
+
+```{r}
+coverage_2018 <- denoms %>% filter(year == 2018)
+print(sum(coverage_2018$percent_served < 0.5, na.rm = T)/length(coverage_2018$five_digit_fips))
+
+i <- coverage_2018 %>% filter(percent_served > 0.5) 
+mean(i$percent_served)
+sum(i$percent_served < 0.9)/length(i$percent_served)
+
+j  <- i %>% filter(percent_served < 0.9)
+mean(j$percent_served)
+
+```
+I'd say that 25% of counties are missing 50% of data or more, and the rest are almost complete (mean completion 90%).
+When we exclude counties missing 50% of data or more, 25% of counties are missing 30% of data and the rest are more than 90% complete. 
+
+And we have coverage of 70% of medicare benes. 
+
+OK I think that justifies it.
+
+Finally, we should make a plot of coverage of Medicare beneficiaries by county, I think, in the analytic dataset? Need to talk to Joan and Marianthi about what figures we want in the manuscript. 
+
+

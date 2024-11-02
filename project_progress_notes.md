@@ -17,7 +17,8 @@ is explained by geography/spatial correlations, but need to ask marianthi the be
 - idk i think both should be natural spline with df = 3, doing this for now.
 
 Need to do:
-- missingness interpretation using simulation paper results
+- calculate coverage (DONE) 
+- missingness interpretation using simulation paper results (DONE)
 - look at autocorrelations in order to decide if we need dlnm or unconstrained 
 lags
 - anlayses for CVD and respiratory separately
