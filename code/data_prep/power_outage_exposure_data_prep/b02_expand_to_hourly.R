@@ -112,7 +112,7 @@ process_chunk <- function(i, pous_data) {
   write_fst(
     x = pous_dat_chunk,
     path = here(
-      "data",
+      "local_data",
       "power_outage_exposure_data_cleaning_output",
       'hourly_county',
       paste0(i,'_', "hourly_data.fst")
@@ -130,7 +130,7 @@ process_chunk <- function(i, pous_data) {
 pous_data <-
   read_fst(
     here(
-      "data",
+      "local_data",
       "power_outage_exposure_data_cleaning_output",
       "raw_with_fips.fst"
     )

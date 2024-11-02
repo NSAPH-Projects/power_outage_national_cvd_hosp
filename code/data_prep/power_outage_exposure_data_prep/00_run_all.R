@@ -96,6 +96,7 @@ for (script in scripts) {
 
 # stop timing
 stop_time <- Sys.time()
+
 log_info(paste0('Total run time was ', round(
   difftime(stop_time, start_time, units = "mins"), 2
 ), ' minutes'))

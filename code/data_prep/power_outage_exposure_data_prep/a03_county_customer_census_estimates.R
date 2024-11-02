@@ -18,7 +18,7 @@ pacman::p_load(tidyverse, here)
 census_cust_estimates <-
   read_rds(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_output",
       "county_level_census_cust_estimates.RDS"
     ))
@@ -27,7 +27,7 @@ census_cust_estimates <-
 eia_totals <-
   read_rds(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_output",
       "eia_state_total_customers_by_year.RDS"
     )
@@ -76,7 +76,7 @@ downscaled <- downscaled %>%
 write_rds(
   downscaled,
   here(
-    "data",
+    "data_for_upload",
     "power_outage_exposure_data_cleaning_output",
     "downscaled_county_customer_estimates.RDS"
   )

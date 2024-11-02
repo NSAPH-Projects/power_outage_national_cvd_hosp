@@ -1,0 +1,49 @@
+﻿state_name,clean_state_name,county_name,clean_county_name,new_state_name,new_clean_state_name
+West Virginia,westvirginia,Botetourt,botetourt,Virginia,virginia
+West Virginia,westvirginia,Allegheny,allegheny,Pennsylvania,pennsylvania
+West Virginia,westvirginia,Craig,craig,Virginia,virginia
+West Virginia,westvirginia,Montgomery,montgomery,Virginia,virginia
+West Virginia,westvirginia,Roanoke,roanoke,Virginia,virginia
+Utah,utah,Mesa,mesa,Colorado,colorado
+South Carolina,southcarolina,Cleveland,cleveland,North Carolina,northcarolina
+Missouri,missouri,Wyandotte,wyandotte,Kansas,kansas
+New Mexico,newmexico,El Paso,elpaso,Texas,texas
+Nebraska,nebraska,Oglala Lakota,oglalalakota,South Dakota,southdakota
+Nebraska,nebraska,Sedgwick,sedgwick,Colorado,colorado
+Tennessee,tennessee,Allen,allen,Kentucky,kentucky
+Tennessee,tennessee,Metcalfe,metcalfe,Kentucky,kentucky
+Tennessee,tennessee,Barren,barren,Kentucky,kentucky
+North Carolina,northcarolina,Unicoi,unicoi,Tennessee,tennessee
+Georgia,georgia,Nassau,nassau,Florida,florida
+Idaho,idaho,Beaverhead,beaverhead,Montana,montana
+Arkansas,arkansas,Le Flore,leflore,Oklahoma,oklahoma
+Idaho,idaho,Malheur,malheur,Oregon,oregon
+Texas,texas,Beaver,beaver,Oklahoma,oklahoma
+North Carolina,northcarolina,York,york,South Carolina ,southcarolina
+Indiana,indiana,Anderson,anderson,Kentucky,kentucky
+Alabama,alabama,Giles,giles,Tennessee,tennessee
+Tennessee,tennessee,Bristol ,bristol,Virginia,virginia
+Virginia,virginia,Caswell,caswell,North Carolina,northcarolina
+Georgia,georgia,Gadsden,gasden,Florida,florida
+Georgia,georgia,Leon,leon,Florida,florida
+Illinois,illinois,Newton,newton,Indiana,indiana
+Mississippi,mississippi,Pickens,pickens,Kentucky,kentucky
+North Carolina,northcarolina,Marlboro,marlboro,South Carolina ,southcarolina
+Montana,montana,Hutchinson,hutchinson,South Dakota,southdakota
+Montana,montana,Codington,codington,South Dakota,southdakota
+Montana,montana,Charles Mix,charlesmix,South Dakota,southdakota
+Montana,montana,Davison,davison,South Dakota,southdakota
+Montana,montana,Yankton,yankton,South Dakota,southdakota
+Montana,montana,Brown,brown,South Dakota,southdakota
+Montana,montana,Bon Homme,bonhomme,South Dakota,southdakota
+Montana,montana,Beadle,beadle,South Dakota,southdakota
+Tennessee,tennessee,Clinton,clinton,Kentucky,kentucky
+Tennessee,tennessee,Adair,adair,Kentucky,kentucky
+Alabama,alabama,Itawamba,itawamba,Mississippi,mississippi
+South Dakota,southdakota,Pawnee,pawnee,Nebraska,nebraska
+Illinois,illinois,Kenosha,kenosha,Wisconsin,wisconsin
+North Carolina,northcarolina,Spartanburg,spartanburg,South Carolina ,southcarolina
+Tennessee,tennessee,Carlisle,carlisle,Kentucky,kentucky
+West Virginia,westvirginia,Giles,giles,Virginia,virginia
+Kansas,kansas,Platte,platte,Missouri,missouri
+North Carolina,northcarolina,SPARTANBURG,spartanburg,South Carolina ,southcarolina

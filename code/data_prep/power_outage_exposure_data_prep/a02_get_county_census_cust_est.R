@@ -13,7 +13,7 @@ pacman::p_load(tidyverse, here)
 # Read --------------------------------------------------------------------
 
 # load fips of states and counties we wish to include
-county_list <- read_rds(here('data', 'cotus_county_list_of_fips.RDS'))
+county_list <- read_rds(here('data_for_upload', 'cotus_county_list_of_fips.RDS'))
 
 # Households --------------------------------------------------------------
 
@@ -21,7 +21,7 @@ county_list <- read_rds(here('data', 'cotus_county_list_of_fips.RDS'))
 hh_2017 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "households_census_data",
       "nhgis0006_ds233_20175_county_E.csv"
@@ -40,7 +40,7 @@ hh_2017 <-
 hh_2018 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "households_census_data",
       "nhgis0006_ds239_20185_county_E.csv"
@@ -59,7 +59,7 @@ hh_2018 <-
 hh_2019 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "households_census_data",
       "nhgis0006_ds244_20195_county_E.csv"
@@ -78,7 +78,7 @@ hh_2019 <-
 hh_2020 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "households_census_data",
       "nhgis0006_ds249_20205_county_E.csv"
@@ -101,7 +101,7 @@ hh_all_years <- bind_rows(hh_2018, hh_2019, hh_2020)
 estab_2018 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "establishments_census_data",
       "CBP2018.CB1800CBP_data_with_overlays_2022-07-22T114055.csv"
@@ -130,7 +130,7 @@ estab_2018 <- estab_2018 %>%
 estab_2019 <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "establishments_census_data",
       "CBP2019.CB1900CBP_data_with_overlays_2022-07-22T114003.csv"
@@ -157,7 +157,7 @@ estab_2019 <- estab_2019 %>%
 
 estab_2020 <- read_csv(
   here(
-    "data",
+    "data_for_upload",
     "power_outage_exposure_data_cleaning_raw_data",
     "establishments_census_data",
     "CBP2020.CB2000CBP_data_with_overlays_2022-06-22T143028.csv"
@@ -223,7 +223,7 @@ census_estimates <-
 write_rds(
   census_estimates,
   here(
-    "data",
+    "data_for_upload",
     "power_outage_exposure_data_cleaning_output",
     "county_level_census_cust_estimates.RDS"
   )

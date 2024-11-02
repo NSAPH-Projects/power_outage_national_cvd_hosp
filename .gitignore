@@ -1,9 +1,4 @@
-/data
-*.csv
-*.nc
-*.rst
-*.RDS
-*.pdf
+/local_data
 .Rproj.user
 .DS_Store
 /figures/figures_output

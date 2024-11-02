@@ -29,7 +29,7 @@ person_coverage_threshold <- 0.5
 eia_estimates <-
   read_rds(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_output",
       "downscaled_county_customer_estimates.RDS"
     )
@@ -40,7 +40,7 @@ eia_estimates <-
 counties <-
   list.files(
     here(
-      "data",
+      "local_data",
       "power_outage_exposure_data_cleaning_output",
       "hourly_county"
     ),
@@ -137,7 +137,7 @@ hourly <- hourly %>% left_join(estimate_missing)
 write_fst(
   hourly,
   here(
-    "data",
+    "local_data",
     "power_outage_exposure_data_cleaning_output",
     "hourly_data_with_coverage_exclusions.fst"
   )
@@ -155,7 +155,7 @@ estimate_missing <-
 write_fst(
   estimate_missing,
   here(
-    'data',
+    'local_data',
     'power_outage_exposure_data_cleaning_output',
     'county_customer_denoms_and_p_missing.fst'
   )

@@ -41,7 +41,8 @@ cotus_state_fips_abbrev <- data.frame(
   stringsAsFactors = FALSE
 )
 
-write_rds(cotus_state_fips_abbrev, here("data", 'cotus_state_fips_abbrev.RDS'))
+write_rds(cotus_state_fips_abbrev,
+          here("data_for_upload", 'cotus_state_fips_abbrev.RDS'))
 
 # get and filter shapefile to that set of counties 
 county_shp <- tigris::counties(year = 2020) # get
@@ -60,14 +61,14 @@ epsg_code <- 5070
 county_shp <- st_transform(county_shp, crs = epsg_code)
 
 # write 
-write_rds(county_shp, here("data", "cotus_county_shp_w_fips.RDS"))
+write_rds(county_shp, here("local_data", "cotus_county_shp_w_fips.RDS"))
 
 # also write backbone file with just fips and no geometry
 county_list <- county_shp %>%
   st_drop_geometry() %>%
   distinct()
 
-write_rds(county_list, here("data", "cotus_county_list_of_fips.RDS"))
+write_rds(county_list, here("data_for_upload", "cotus_county_list_of_fips.RDS"))
 
 # write backbone with all fips and all dates in 2018
 dates_2018 <- seq(as.Date("2018-01-01"), as.Date("2018-12-31"), by = "day")
@@ -75,5 +76,5 @@ dates_2018 <- seq(as.Date("2018-01-01"), as.Date("2018-12-31"), by = "day")
 panel_fips_2018 <- 
   CJ(five_digit_fips = county_list$five_digit_fips, date = dates_2018)
 
-write_rds(panel_fips_2018, here("data", "panel_for_2018.RDS"))
+write_rds(panel_fips_2018, here("data_for_upload", "panel_for_2018.RDS"))
 

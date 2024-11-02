@@ -14,7 +14,7 @@ source(here('code', 'functions', 'expand_to_hourly_helpers.R'))
 # Read --------------------------------------------------------------------
 
 counties <-
-  read_fst(here("data",
+  read_fst(here("local_data",
                 "power_outage_exposure_data_cleaning_output", 
                 "hourly_data_with_coverage_exclusions.fst")) |>
   as.data.table()
@@ -52,7 +52,7 @@ hrs_out <- counties[, .(
 ), by = .(five_digit_fips, day)]
 
 write_fst(hrs_out, here(
-  'data',
+  'data_for_upload',
   'power_outage_exposure_data_cleaning_output',
   'daily_hrs_out_oct_31.fst'
 ))

@@ -16,13 +16,14 @@ pacman::p_load(tidyverse, here, janitor, tidytext, snakecase, readxl,
 # Read --------------------------------------------------------------------
 
 # load fips of states and counties we wish to include
-county_list <- read_rds(here('data', 'cotus_county_list_of_fips.RDS'))
+county_list <- 
+  read_rds(here('data_for_upload', 'cotus_county_list_of_fips.RDS'))
 
 # raw data from POUS
 raw_pous_read <-
   fread(
     here(
-      "data",
+      "local_data",
       "power_outage_exposure_data_cleaning_raw_data",
       "POUS_Export_Raw_CityByUtility_20170101_20201231.csv"
     )
@@ -32,7 +33,7 @@ raw_pous_read <-
 fips_xwalk <-
   read_csv(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "nhgis0009_ds244_20195_county.csv"
     )
@@ -44,7 +45,7 @@ fips_xwalk <-
 spell_correction_file <-
   read_xlsx(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_output",
       "missing_county_key.xlsx"
     )
@@ -54,7 +55,7 @@ spell_correction_file <-
 # state reassignment correction file - manual correction file for reassigning 
 # counties that are misattributed to neighbouring states to the right states
 state_reassignment <-
-  read_csv(here("data",
+  read_csv(here("data_for_upload",
                 "power_outage_exposure_data_cleaning_output",
                 "state_reassignment_fix.csv"))
 
@@ -213,7 +214,7 @@ raw_pous <-
 write_fst(
   raw_pous,
   here(
-    "data",
+    "local_data",
     "power_outage_exposure_data_cleaning_output",
     "raw_with_fips.fst"
   )

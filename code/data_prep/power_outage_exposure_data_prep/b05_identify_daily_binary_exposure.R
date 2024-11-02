@@ -16,7 +16,7 @@ source(here("code", 'functions', 'helpers_days_exposed_unexposed.R'))
 # Read --------------------------------------------------------------------
 
 counties <-
-  read_fst(here("data",
+  read_fst(here("local_data",
                 "power_outage_exposure_data_cleaning_output", 
                 "hourly_data_with_coverage_exclusions.fst")) |>
   as.data.table()
@@ -80,7 +80,7 @@ combined_df <- combined_df %>% select(
 write_fst(
   combined_df,
   here(
-    "data",
+    "data_for_upload",
     "power_outage_exposure_data_cleaning_output",
     "all_days_exposed_unexposed.fst"
   )

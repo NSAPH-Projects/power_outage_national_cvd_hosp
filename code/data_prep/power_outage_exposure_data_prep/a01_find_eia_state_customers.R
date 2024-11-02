@@ -12,7 +12,7 @@ pacman::p_load(tidyverse, readxl, here)
 # Read --------------------------------------------------------------------
 
 # read list of states we hope to include
-state_fips_abbrev <- read_rds(here('data', 'cotus_state_fips_abbrev.RDS'))
+state_fips_abbrev <- read_rds(here('data_for_upload', 'cotus_state_fips_abbrev.RDS'))
 
 # read customer counts
 # list eia dataset names - these are datasets containing electrical customer
@@ -20,7 +20,7 @@ state_fips_abbrev <- read_rds(here('data', 'cotus_state_fips_abbrev.RDS'))
 eia_sets <-
   list.files(
     here(
-      "data",
+      "data_for_upload",
       "power_outage_exposure_data_cleaning_raw_data",
       "EIA"
     ),
@@ -87,7 +87,7 @@ cust_counts <- cust_counts %>%
 
 write_rds(cust_counts,
           here(
-            "data",
+            "data_for_upload",
             "power_outage_exposure_data_cleaning_output",
             "eia_state_total_customers_by_year.RDS"
           ))
