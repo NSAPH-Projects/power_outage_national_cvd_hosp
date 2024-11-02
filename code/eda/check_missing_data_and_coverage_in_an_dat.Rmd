@@ -1,0 +1,63 @@
+---
+title: "Check how much data is missing in POUS"
+output: html_document
+date: "2024-11-02"
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse, here, fst)
+
+all_fips <- read_rds(here("data_for_upload", "cotus_county_list_of_fips.RDS"))
+print(length(unique(all_fips$five_digit_fips)))
+
+```
+
+Ok so the US as we've defined it has 3142 county fips codes that covers everyone and so those are the customers we want to use as the denominator.
+
+Need to read in some data for this calculation.
+
+First EIA total denominators. These should give us the denominators for the number of electrical customers in the US. 
+
+```{r}
+# eia total denom
+eia_customer_estimates <- read_rds(here(
+  "data_for_upload",
+  "power_outage_exposure_data_cleaning_output",
+  "downscaled_county_customer_estimates.RDS"
+))
+
+eia <-
+  eia_customer_estimates %>%
+  group_by(year) %>%
+  summarize(total_customers_from_eia =
+              sum(downscaled_county_estimate, na.rm = T))
+
+# pous denoms
+denoms <- read_fst(
+  here(
+    'data_for_upload',
+    'power_outage_exposure_data_cleaning_output',
+    'county_customer_denoms_and_p_missing.fst'
+  )
+)
+
+denoms <- denoms %>%
+  mutate(percent_served = ifelse(percent_served > 1, 1, percent_served),
+    customer_count_served = county_customers * percent_served,
+    customer_count_wo_less_50_p = 
+      ifelse(percent_served < 0.5, NA_real_, county_customers),
+    customer_count_served_wo_less_50_p = 
+      customer_count_wo_less_50_p * percent_served
+  )
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

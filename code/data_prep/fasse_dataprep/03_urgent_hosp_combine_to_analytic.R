@@ -16,7 +16,13 @@ hosp <-
          n_cvd:n_mi) 
 
 outage_exposure <- 
-  read_parquet(here('data', 'analytic_exposure_data_2018.parquet')) %>%
+  read_parquet(
+    here(
+      'data_for_upload',
+      'power_outage_exposure_data_cleaning_output',
+      'analytic_exposure_data_2018.parquet'
+    )
+  ) %>%
   select(five_digit_fips, 
          day, 
          exposed_1_hrs_percentile:exposed_1_hrs_0.05, 
@@ -91,4 +97,4 @@ an_dat[, stratum := .GRP, by = .(five_digit_fips, day_of_week, two_month_period)
 
 # Write -------------------------------------------------------------------
 
-write_rds(an_dat, here('data', 'an_dat_urgent_hosp.RDS'))
+write_rds(an_dat, here('data', 'an_dat_urgent_hosp_nov_2.RDS'))
