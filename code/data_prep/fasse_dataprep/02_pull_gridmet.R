@@ -39,4 +39,4 @@ meteo_vars <-
     )
   )
 
-write_parquet(meteo_vars, here('meteo_vars.parquet'))
+write_parquet(meteo_vars, here('data', 'meteo_vars.parquet'))

@@ -1,4 +1,4 @@
-# Create analytic data from exposure and outcome for urgent hospitalizations
+# Create analytic dataset from exposure and outcome data
 
 # Libraries ---------------------------------------------------------------
 
@@ -6,7 +6,7 @@ pacman::p_load(tidyverse, data.table, here, arrow)
 
 # Read --------------------------------------------------------------------
 
-panel_fips <- read_rds(here('data', 'panel_for_2018.RDS')) %>%
+panel_fips <- read_rds(here('data_for_upload', 'panel_for_2018.RDS')) %>%
   rename(day = date)
 
 hosp <- 
@@ -91,4 +91,4 @@ an_dat[, stratum := .GRP, by = .(five_digit_fips, day_of_week, two_month_period)
 
 # Write -------------------------------------------------------------------
 
-write_rds(an_dat, here('data', 'an_dat_urgent_hosp.RDS'))
+write_rds(an_dat, here('data', 'an_dat.RDS'))

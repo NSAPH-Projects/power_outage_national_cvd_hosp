@@ -1,6 +1,39 @@
 # power_outage_national_cvd_hosp progress notes 
 
 
+November 2nd, 2024:
+
+We know what we have to do, and there's a lot to do! 
+
+We did:
+- we fixed the error in the power outage processing pipeline that we found
+- updated and documented everything so Vivian can review
+- we looked at the relationship between precipitation and hospitalizations, and
+it is strange. I think modelling it linearly might be ok. Maybe the relationship 
+is explained by geography/spatial correlations, but need to ask marianthi the best way to model/if this is the correct conclusion.
+- we looked at the relationship between wind speed and outage and hospitalizations, and I think creating a four category variable makes the most sense
+- again need to check w marianthi
+- or maybe just modelling wind speed with a natural spline?
+- idk i think both should be natural spline with df = 3, doing this for now.
+
+Need to do:
+- missingness interpretation using simulation paper results
+- look at autocorrelations in order to decide if we need dlnm or unconstrained 
+lags
+- anlayses for CVD and respiratory separately
+- fix hypertension hosp codes
+
+Additional analyses:
+- sex
+- age
+
+Additional datasets:
+- DME use
+- poverty
+- hot and cold days 
+
+
+
 Update october 31st:
 - updated power outage pipeline, but haven't checked to see if it's correct
 - suspicious that each county has same dimension, but I guess most chunks might

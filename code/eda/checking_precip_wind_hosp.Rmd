@@ -1,0 +1,85 @@
+---
+title: "Checking relationship between confounders and outcome"
+output: html_document
+date: "2024-11-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First going to check the relationship between precipitation, outages, and hosp.
+Want to know how to control best for this in the model.
+
+```{r}
+pacman::p_load(here, tidyverse, arrow, mgcv)
+
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp.RDS'))
+
+# run a model to see if the relationship between precipitation and hosp is 
+# non-linear, using penalized spline and controlling for temp with another 
+# penalized spline
+
+# respiratory hosp
+resp_model <-
+  gam(
+    n_resp ~ s(precip, bs = "ps") +
+      s(max_temp, bs = "ps") +
+      offset(log(n_benes)),
+    family = poisson,
+    data = an_dat,
+    method = 'REML'
+  )
+
+# cvd hosp
+cvd_model <-
+  gam(
+    n_cvd ~ s(precip, bs = "ps") +
+      s(max_temp, bs = "ps") +
+      offset(log(n_benes)),
+    family = poisson,
+    data = an_dat,
+    method = "REML"
+  )
+
+summary(cvd_model)
+summary(resp_model)
+
+o <- an_dat %>% 
+  mutate(p_precip = ntile(precip, 10)) %>% 
+  group_by(p_precip) %>% 
+  summarize(mean_outage = mean(exposed_8_hrs_0.005),
+            mean_cvd = mean(n_cvd),
+            mean_resp = mean(n_resp))
+
+plot(o$p_precip, o$mean_cvd)
+plot(o$p_precip, o$mean_resp)
+plot(o$p_precip, o$mean_outage)
+```
+
+Ok - those patterns in the lower deciles of precipitation are interesting. 
+
+```{r}
+# Check size of wind speed bins
+
+pacman::p_load(here, tidyverse, arrow)
+
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp.RDS'))
+
+o <- an_dat %>% 
+  mutate(p_wind_speed = ntile(wind_speed, 10)) %>% 
+  group_by(p_wind_speed) %>% 
+  summarize(mean_outage = mean(exposed_8_hrs_0.005),
+            mean_hosp = mean(n_resp + n_cvd))
+
+plot(o$p_wind_speed, o$mean_outage)
+plot(o$p_wind_speed, o$mean_hosp)
+
+# what i'm getting from this plot is that the relationship is not linear and 
+# bins 8, 9, and 10 all need their own bins. so going to do 4-category var
+# with deciles 1-7, 8, 9, and 10
+
+```
+
+
+This is also interesting. 
