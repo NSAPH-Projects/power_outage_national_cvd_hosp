@@ -155,7 +155,7 @@ estimate_missing <-
 write_fst(
   estimate_missing,
   here(
-    'local_data',
+    'data_for_upload',
     'power_outage_exposure_data_cleaning_output',
     'county_customer_denoms_and_p_missing.fst'
   )
