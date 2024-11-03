@@ -21,7 +21,7 @@ Need to do:
 - missingness interpretation using simulation paper results (DONE)
 - look at autocorrelations in order to decide if we need dlnm or unconstrained 
 lags (DONE - autocorr is really small, no need for DLNM)
-- analyses for CVD and respiratory separately
+- analyses for CVD and respiratory separately (ongoing)
 - fix hypertension hosp codes (DONE)
 - check dispersion
 
@@ -39,7 +39,7 @@ Additional datasets:
 Update october 31st:
 - updated power outage pipeline, but haven't checked to see if it's correct
 - suspicious that each county has same dimension, but I guess most chunks might
-be the same 
+be the same (edited to add: this is right)
 
 Had meeting yesterday about POUS.
 Next steps in project:
