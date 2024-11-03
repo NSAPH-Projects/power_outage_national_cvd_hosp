@@ -13,7 +13,7 @@ hosp <-
   read_rds(here("data", "urg_num_hosp_by_day_by_county_inc_state.RDS")) %>%
   select(five_digit_fips = county, 
          day = admission_date,
-         n_cvd:n_mi) 
+         n_all_cvd:n_mi) 
 
 outage_exposure <- 
   read_parquet(
@@ -57,10 +57,12 @@ an_dat <- an_dat %>% filter(percent_served > 0.5 & !is.na(percent_served))
 # when hospitalizations are missing, that means that there were no 
 # hospitalizations on those days, so we should set those to 0
 
-an_dat <- 
+an_dat <-
   an_dat %>%
-  mutate_at(vars(n_cvd, n_resp, n_stroke, n_mi, n_benes),
-            ~ ifelse(is.na(.), 0, .))
+  mutate_at(
+    vars(n_all_cvd, n_cvd_no_hem_no_hyp, n_resp, n_stroke, n_mi, n_benes),
+    ~ ifelse(is.na(.), 0, .)
+  )
 
 # there are some counties where the medicare beneficiary counts are missing. 
 # these are in virginia, for small towns. idk what is going on here, 

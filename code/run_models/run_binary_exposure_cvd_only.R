@@ -10,8 +10,6 @@ pacman::p_load(tidyverse, data.table, here, arrow, gnm, splines)
 an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_nov_2.RDS'))
 an_dat <- an_dat %>% mutate(all_hosp = n_cvd + n_resp)
 
-outcome_col <- 'whatever it will be'
-
 # binary exposures 
 exposure_columns <- c(colnames(an_dat)[10:21])
 

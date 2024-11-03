@@ -44,7 +44,8 @@ hosp_info <-
   }))]
 
 # define codes from icd codes file
-cvd <- icd_codes$cvd_no_hem_no_hyp # cvd without hem stroke or hypertension
+all_cvd <- icd_codes$all_cvd # all cvd codes, including hypertension and hem stroke
+cvd_no_hem_no_hyp <- icd_codes$cvd_no_hem_no_hyp # cvd without hem stroke or hypertension
 resp <- icd_codes$resp # all respiratory codes
 # stroke and MI codes to check our work
 stroke <- c(
@@ -57,12 +58,20 @@ mi <- c(icd_codes$mi_icd_10, icd_codes$mi_icd_9)
 
 
 # indicate hospitalizations with the codes
-hosp_info <- hosp_info[, contains_cvd_code := as.integer(
-  code_1 %chin% cvd |
-    code_2 %chin% cvd |
-    code_3 %chin% cvd |
-    code_4 %chin% cvd |
-    code_5 %chin% cvd
+hosp_info <- hosp_info[, contains_any_cvd_code := as.integer(
+  code_1 %chin% all_cvd |
+    code_2 %chin% all_cvd |
+    code_3 %chin% all_cvd |
+    code_4 %chin% all_cvd |
+    code_5 %chin% all_cvd
+)]
+
+hosp_info <- hosp_info[, contains_cvd_no_hem_no_hyp := as.integer(
+  code_1 %chin% cvd_no_hem_no_hyp |
+    code_2 %chin% cvd_no_hem_no_hyp |
+    code_3 %chin% cvd_no_hem_no_hyp |
+    code_4 %chin% cvd_no_hem_no_hyp |
+    code_5 %chin% cvd_no_hem_no_hyp
 )]
 
 hosp_info <- hosp_info[, contains_resp_code := as.integer(
@@ -95,34 +104,100 @@ hosp_info[, `:=`(
   is_urg_or_emerg = ifelse(admsn_type_cd == 1 | admsn_type_cd == 2, 1, 0)
 )]
 
+# identify hosp by age and sex 
+hosp_info[, `:=` (
+  age = ifelse(age_dob >= 75, 1, 0)
+)]
+
 # summarize to day-county level
 hosp_by_day_by_county <- hosp_info[, .(
-  n_cvd = sum(contains_cvd_code),
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
   n_resp = sum(contains_resp_code),
   n_stroke = sum(contains_stroke_code),
   n_mi = sum(contains_mi_code)),
   by = .(admission_date, county, state)
 ]
 
+# for emergency hosp only
 emerg_hosp_by_day_by_county <- hosp_info[is_emergency == 1]
 
 emerg_hosp_by_day_by_county <- emerg_hosp_by_day_by_county[, .(
-  n_cvd = sum(contains_cvd_code),
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
   n_resp = sum(contains_resp_code),
   n_stroke = sum(contains_stroke_code),
   n_mi = sum(contains_mi_code)),
   by = .(admission_date, county, state)
 ]
 
+
+# for urgent hosp only
 urgent_hosp_by_day_by_county <- hosp_info[is_urg_or_emerg == 1]
 
+urg_hosp_by_sex <- urgent_hosp_by_day_by_county[sex != 0, .(
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
+  n_resp = sum(contains_resp_code),
+  n_stroke = sum(contains_stroke_code),
+  n_mi = sum(contains_mi_code)
+),
+by = .(admission_date, county, state, sex)]
+
+urg_hosp_by_sex <-
+  dcast(
+    urg_hosp_by_sex,
+    admission_date + county + state ~ sex,
+    value.var = c(
+      "n_all_cvd",
+      "n_cvd_no_hem_no_hyp",
+      "n_resp",
+      "n_stroke",
+      "n_mi"
+    )
+  )
+
+setnames(urg_hosp_by_sex, old = names(urg_hosp_by_sex)[-(1:3)], 
+         new = paste0(names(urg_hosp_by_sex)[-(1:3)], "_sex"))
+
+urg_hosp_by_age <- urgent_hosp_by_day_by_county[, .(
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
+  n_resp = sum(contains_resp_code),
+  n_stroke = sum(contains_stroke_code),
+  n_mi = sum(contains_mi_code)
+),
+by = .(admission_date, county, state, age)]
+
+urg_hosp_by_age <-
+  dcast(
+    urg_hosp_by_age,
+    admission_date + county + state ~ age,
+    value.var = c(
+      "n_all_cvd",
+      "n_cvd_no_hem_no_hyp",
+      "n_resp",
+      "n_stroke",
+      "n_mi"
+    )
+  )
+
+setnames(urg_hosp_by_age, old = names(urg_hosp_by_age)[-(1:3)], 
+         new = paste0(names(urg_hosp_by_age)[-(1:3)], "_age"))
+
 urgent_hosp_by_day_by_county <- urgent_hosp_by_day_by_county[, .(
-  n_cvd = sum(contains_cvd_code),
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
   n_resp = sum(contains_resp_code),
   n_stroke = sum(contains_stroke_code),
   n_mi = sum(contains_mi_code)),
   by = .(admission_date, county, state)
 ]
+
+urgent_hosp_by_day_by_county <- 
+  urgent_hosp_by_day_by_county %>%
+  left_join(urg_hosp_by_age) %>% 
+  left_join(urg_hosp_by_sex)
 
 # Write -------------------------------------------------------------------
 
@@ -135,6 +210,17 @@ write_rds(emerg_hosp_by_day_by_county,
 write_rds(urgent_hosp_by_day_by_county,
           here("data", "urg_num_hosp_by_day_by_county_inc_state.RDS"))
 
-# write denom
-benes_by_county <- benes_2018[, .(n_benes = .N), by = .(county, state)]
-write_rds(benes_by_county, here('data', 'benes_by_county_fips.RDS'))
+# write denom, for secondary analyses also
+benes_2018[, age_group := ifelse(age_dob >= 75, "older_75", "under_75")]
+benes_2018[, sex_group := ifelse(sex == '1', "sex_1", "sex_2")]
+
+# summarize
+benes_summary <- benes_2018[, .(
+  n_benes = .N,
+  n_benes_older_75 = sum(age_group == "older_75"),
+  n_benes_under_75 = sum(age_group == "under_75"),
+  n_benes_sex_1 = sum(sex_group == "sex_1"),
+  n_benes_sex_2 = sum(sex_group == "sex_2")
+), by = .(county, state)]
+
+write_rds(benes_summary, here('data', 'benes_by_county_fips.RDS'))

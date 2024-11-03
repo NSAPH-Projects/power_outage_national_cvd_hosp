@@ -20,9 +20,10 @@ Need to do:
 - calculate coverage (DONE) 
 - missingness interpretation using simulation paper results (DONE)
 - look at autocorrelations in order to decide if we need dlnm or unconstrained 
-lags
-- anlayses for CVD and respiratory separately
-- fix hypertension hosp codes
+lags (DONE - autocorr is really small, no need for DLNM)
+- analyses for CVD and respiratory separately
+- fix hypertension hosp codes (DONE)
+- check dispersion
 
 Additional analyses:
 - sex

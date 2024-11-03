@@ -257,6 +257,7 @@ hem_stroke_icd_10 <-
     "1629")   # Nontraumatic intracranial hemorrhage, unspecified
 
 
+
 # Respiratory-related codes -----------------------------------------------
 
 # at the moment, we're not distinguishing between respiratory conditions likley
@@ -495,6 +496,17 @@ all_icd_codes <- list(
     istroke_icd_10,
     istroke_icd_9
   ),
+  all_cvd = c(
+    mi_icd_10,
+    mi_icd_9,
+    afib_icd_10,
+    afib_icd_9,
+    istroke_icd_10,
+    istroke_icd_9,
+    hem_stroke_icd_10, 
+    hem_stroke_icd_9,
+    hyp_icd_10,
+    hyp_icd_9),
   resp = c(resp_icd_10, resp_icd_9)
 )
 
