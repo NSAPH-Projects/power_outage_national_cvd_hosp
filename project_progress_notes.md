@@ -1,6 +1,22 @@
 # power_outage_national_cvd_hosp progress notes 
 
 
+November 5th, 2024:
+
+New updates:
+- marianthi agrees relationship is due to spatial autocorrelation, can try to 
+account for this a bit
+- still need to do age/sex (DONE), DME use, poverty, and hot and cold days.
+- need to clean data again for age and sex (DONE), and need to go get datasets
+for the other analyses
+- sensitivity analyses with hypertension added (DONE)
+- need to know how to calculate cumulative lag confidence intervals/summarize 
+appropriately over lags 
+- still need to do analyses with number of hours out 
+
+- for now, going to do everything w all three 
+
+
 November 2nd, 2024:
 
 We know what we have to do, and there's a lot to do! 
@@ -23,7 +39,7 @@ Need to do:
 lags (DONE - autocorr is really small, no need for DLNM)
 - analyses for CVD and respiratory separately (ongoing)
 - fix hypertension hosp codes (DONE)
-- check dispersion
+- check dispersion (DONE - 0.91!! I assume that is close enough to be fine for a regular Poisson model).
 
 Additional analyses:
 - sex

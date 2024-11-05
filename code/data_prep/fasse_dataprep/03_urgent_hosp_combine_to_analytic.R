@@ -13,7 +13,7 @@ hosp <-
   read_rds(here("data", "urg_num_hosp_by_day_by_county_inc_state.RDS")) %>%
   select(five_digit_fips = county, 
          day = admission_date,
-         n_all_cvd:n_mi) 
+         n_all_cvd:n_mi_2_sex) 
 
 outage_exposure <- 
   read_parquet(
@@ -34,7 +34,7 @@ meteo <- read_parquet(here('data', 'meteo_vars.parquet')) %>%
   select(five_digit_fips, day = observation_date, max_temp:wind_speed)
 
 denoms <- read_rds(here('data', 'benes_by_county_fips.RDS')) %>%
-  select(five_digit_fips = county, n_benes)
+  select(five_digit_fips = county, n_benes:n_benes_sex_2)
 
 # Do ----------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ an_dat <- an_dat %>% filter(percent_served > 0.5 & !is.na(percent_served))
 an_dat <-
   an_dat %>%
   mutate_at(
-    vars(n_all_cvd, n_cvd_no_hem_no_hyp, n_resp, n_stroke, n_mi, n_benes),
+    vars(n_all_cvd:n_benes_sex_2),
     ~ ifelse(is.na(.), 0, .)
   )
 
@@ -97,6 +97,9 @@ an_dat[, day_of_week := lubridate::wday(day)]
 an_dat[, two_month_period := cut(day, breaks = "2 months", labels = FALSE)]
 an_dat[, stratum := .GRP, by = .(five_digit_fips, day_of_week, two_month_period)]
 
+# filter out lagged nas
+#an_dat <- an_dat[complete.cases(an_dat),]
+
 # Write -------------------------------------------------------------------
 
-write_rds(an_dat, here('data', 'an_dat_urgent_hosp_nov_2.RDS'))
+write_rds(an_dat, here('data', 'an_dat_urgent_hosp_nov_5.RDS'))
