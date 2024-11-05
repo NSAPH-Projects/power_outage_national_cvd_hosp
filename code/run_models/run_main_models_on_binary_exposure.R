@@ -57,6 +57,11 @@ cvd_only_summary <- read_model_results(cvd_only, exposure_columns)
 resp_only_summary <- read_model_results(resp_only, exposure_columns)
 
 
+# This we could save  -----------------------------------------------------
+
+
+
+
 # Plot --------------------------------------------------------------------
 
 p_all_hosp <-
@@ -69,7 +74,7 @@ cardiovascular (not hypertension or hem stroke) hospitalizations among medicare 
   )
 
 ggsave(p_all_hosp,
-       here("results", 'plots_of_results', 'all_hospitalizations.png'))
+       filename = here("results", 'plots_of_results', 'all_hospitalizations.png'))
 
 p_resp <-
   create_summary_plot(
@@ -80,7 +85,7 @@ hospitalizations among medicare benes in counties > 500 benes, >50% pous coverag
   )
 
 ggsave(p_resp,
-       here(
+       filename = here(
          "results",
          'plots_of_results',
          'respiratory_hospitalizations.png'
@@ -95,7 +100,7 @@ hospitalizations among medicare benes in counties > 500 benes, >50% pous coverag
   )
 
 ggsave(p_cvd,
-       here(
+       filename = here(
          "results",
          'plots_of_results',
          'cvd_no_hem_no_hyp_hospitalizations.png'
