@@ -170,4 +170,4 @@ anova(wind_linear_cvd, wind_2_df_cvd, test = 'F')
 anova(wind_3_df_cvd, wind_4_df_cvd, test = 'F')
 
 # looks like 4 dfs is actually good
-plot(wind_4_df_cvd)
+# maybe that's not biologically plausible though? 
