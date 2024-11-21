@@ -290,3 +290,113 @@ create_summary_plot_main_model <- function(summary_table) {
   
   return(p)
 }
+
+
+# Run dlnm ----------------------------------------------------------------
+
+run_dlnm_po_model <-
+  function(outcome_col,
+           exposure_col,
+           offset_col,
+           po_data) {
+    # create crossbases
+    temp_crossbasis_ns <- crossbasis(
+      po_data$max_temp,
+      lag = 6,
+      argvar = list(fun = "ns", df = 3),
+      arglag = list(fun = "ns", df = 3)
+    )
+    
+    power_outage_crossbasis <- crossbasis(
+      po_data[[exposure_col]],
+      lag = 6,
+      argvar = list(fun = "lin"),
+      arglag = list(fun = "ns", df = 3)
+    )
+    
+    # define formula
+    formula <-
+      as.formula(
+        paste(
+          outcome_col,
+          " ~ ",
+          "temp_crossbasis_ns",
+          "+",
+          "power_outage_crossbasis",
+          "+ ns(precip, df = 3)" ,
+          "+ ns(wind_speed, df = 3) +",
+          offset(offset_col)
+        )
+      )
+    
+    # fit model
+    po_model <- gnm(
+      formula,
+      family = quasipoisson(),
+      eliminate = as.factor(stratum),
+      data = po_data
+    )
+    model_cb <- list(po_model = po_model, po_cb = power_outage_crossbasis)
+    
+    return(model_cb)
+  }
+
+
+# run dlnms
+
+run_dlnm_models <- function(outcome_col, offset_col, data, exposures) {
+  setNames(
+    lapply(
+      X = exposures,
+      FUN = run_dlnm_po_model,
+      outcome_col = outcome_col,
+      po_data = data,
+      offset = offset_col
+    ),
+    exposures
+  )
+}
+
+
+# get predictions for dlnm 
+get_dlnm_pred <- function(model_list) {
+  # Initialize an empty list to store predictions
+  predictions_list <- list()
+  model_names <- names(model_list)
+  # Loop through each model object in the list
+  for (i in seq_along(model_list)) {
+    # Extract the model and crossbasis from the current list element
+    model <- model_list[[i]]$po_model
+    power_outage_crossbasis <- model_list[[i]]$po_cb
+    name <- model_names[[i]]
+    
+    # Generate predictions using crosspred
+    pred <- crosspred(
+      basis = power_outage_crossbasis, 
+      model = model, 
+      at = 0:2, 
+      bylag = 1,
+      cumul = TRUE
+    )
+    
+    # get RR estimates
+    # extract RR estimates and confidence intervals
+    est <- pred$matRRfit[2, ]
+    ci_high <- pred$matRRhigh[2, ]
+    ci_low <- pred$matRRlow[2, ]
+    
+    # create a data frame with the estimates and confidence intervals
+    preds <- data.frame(
+      m_name = name,
+      est = est,
+      ci_low = ci_low,
+      ci_high = ci_high,
+      lags = seq(0, length(est) - 1)
+    )
+    
+    # Store the predictions in the list
+    predictions_list[[i]] <- preds
+  }
+  
+  return(predictions_list)
+}
