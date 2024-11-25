@@ -11,7 +11,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 # Read --------------------------------------------------------------------
 
 an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_nov_5.RDS'))
-
+an_dat <- an_dat %>% mutate(log_n_benes = log(n_benes))
 
 # Models ------------------------------------------------------------------
 
@@ -22,23 +22,26 @@ exposure_columns <-
     'exposed_8_hrs_0.03',
     'exposed_8_hrs_0.05')
 
-cvd_po_dlnms <- run_dlnm_models(
+cvd_dlnms <- run_dlnm_models(
+  po_data = an_dat,
   outcome_col = 'n_cvd_no_hem_no_hyp',
-  offset_col = 'n_benes',
-  exposures = exposure_columns,
-  data = an_dat
+  exposure_cols = exposure_columns,
+  offset_col = 'log_n_benes',
+  precip_dfs = 2,
+  po_dfs = 6
 )
 
-resp_po_dlnms <- run_dlnm_models(
+resp_dlnms <- run_dlnm_linear_precip(
+  po_data = an_dat,
   outcome_col = 'n_resp',
-  offset_col = 'n_benes',
-  exposures = exposure_columns,
-  data = an_dat
+  exposure_cols = exposure_columns,
+  offset_col = 'log_n_benes',
+  po_dfs = 3
 )
 
 # extract results 
-cvd_dlnm_preds <- rbindlist(get_dlnm_pred(cvd_po_dlnms))
-resp_dlnm_preds <- rbindlist(get_dlnm_pred(resp_po_dlnms))
+cvd_dlnm_preds <- rbindlist(get_dlnm_pred(cvd_dlnms))
+resp_dlnm_preds <- rbindlist(get_dlnm_pred(resp_dlnms))
 
 # add outcome type labels
 cvd_dlnm_preds <- cvd_dlnm_preds %>%
@@ -89,7 +92,11 @@ dlnm_main_analysis_plot <-
 
 ggsave(
   dlnm_main_analysis_plot,
-  filename = here('results', 'plots_of_results', 'main_analysis_dlnm.pdf'),
+  filename = here(
+    'results',
+    'plots_of_results',
+    'main_analysis_dlnm_nov_25.pdf'
+  ),
   width = 14,
   height = 7
 )

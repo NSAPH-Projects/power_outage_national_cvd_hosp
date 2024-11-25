@@ -38,104 +38,128 @@ q1_dme <- an_dat %>% filter(dme_quartile == 1)
 # Run ---------------------------------------------------------------------
 
 effect_mod_models_cvd <- list(
-  cvd_75_over = run_dlnm_po_model(
-    outcome_col = 'n_cvd_no_hem_no_hyp_1_age',
-    offset_col = 'n_benes_older_75',
+  cvd_75_over = run_dlnm_po_model_copilot(
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    outcome_col = 'n_cvd_no_hem_no_hyp_1_age',
+    exposure_col = 'exposed_8_hrs_0.01',
+    offset_col = 'n_benes_older_75',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_less_75 = run_dlnm_po_model(
+  cvd_less_75 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp_0_age',
     offset_col = 'n_benes_under_75',
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_male_benes = run_dlnm_po_model(
+  cvd_male_benes = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp_1_sex',
     offset_col = 'n_benes_sex_1',
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_female_benes = run_dlnm_po_model(
+  cvd_female_benes = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp_2_sex',
     offset_col = 'n_benes_sex_2',
     an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_pov_q1 = run_dlnm_po_model(
+  cvd_pov_q1 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
     q1_pov,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_pov_q4 = run_dlnm_po_model(
+  cvd_pov_q4 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
     q4_pov,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_dme_q1 = run_dlnm_po_model(
+  cvd_dme_q1 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
     q1_dme,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   ),
-  cvd_dme_q4 = run_dlnm_po_model(
+  cvd_dme_q4 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
     q4_dme,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 6
   )
 )
 
 effect_mod_models_resp = list(
-  resp_75_over = run_dlnm_po_model(
+  resp_75_over = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp_1_age',
     offset_col = 'n_benes_older_75',
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_less_75 = run_dlnm_po_model(
+  resp_less_75 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp_0_age',
     offset_col = 'n_benes_under_75',
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_male_benes = run_dlnm_po_model(
+  resp_male_benes = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp_1_sex',
     offset_col = 'n_benes_sex_1',
     po_data = an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_female_benes = run_dlnm_po_model(
+  resp_female_benes = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp_2_sex',
     offset_col = 'n_benes_sex_2',
     an_dat,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_pov_q1 = run_dlnm_po_model(
+  resp_pov_q1 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
     q1_pov,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_pov_q4 = run_dlnm_po_model(
+  resp_pov_q4 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
     q4_pov,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_dme_q1 = run_dlnm_po_model(
+  resp_dme_q1 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
     q1_dme,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   ),
-  resp_dme_q4 = run_dlnm_po_model(
+  resp_dme_q4 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
     q4_dme,
-    exposure_col = 'exposed_8_hrs_0.01'
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
   )
 )
 
@@ -216,7 +240,7 @@ effect_mod_plot <-
 
 ggsave(
   effect_mod_plot,
-  filename = here('results', 'plots_of_results', 'effect_mod_dlnm.pdf'),
+  filename = here('results', 'plots_of_results', 'effect_mod_dlnm_nov_25.pdf'),
   width = 17,
   height = 15
 )

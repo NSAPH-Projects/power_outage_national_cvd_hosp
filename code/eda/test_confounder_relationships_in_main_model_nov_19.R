@@ -46,90 +46,105 @@ knots_precip = quantile(test_confound$precip, probs=c(.80, .90))
 
 precip_linear_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp + wind_speed + precip + offset(n_benes),
+  n_resp ~ max_temp + wind_speed + precip + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 precip_2_df_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp + wind_speed + ns(precip, df = 2) + offset(n_benes),
+  n_resp ~ max_temp + wind_speed + ns(precip, df = 2) + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 precip_3_df_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp + wind_speed + ns(precip, knots = knots_precip) + offset(n_benes),
+  n_resp ~ max_temp + wind_speed + ns(precip, df = 3, knots = knots_precip) + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 summary(precip_3_df_resp)
+summary(precip_2_df_resp)
+summary(precip_linear_resp)
 anova(precip_2_df_resp, precip_3_df_resp, test = 'F')
 anova(precip_linear_resp, precip_2_df_resp, test = 'F')
 
-# looks like 2 dfs is correct.
+# looks like the linear model is the best fit for respiratory 
 
 precip_linear_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp + wind_speed + precip + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp + 
+    wind_speed + 
+    precip + 
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 precip_2_df_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp + wind_speed + ns(precip, df = 2) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp + 
+    wind_speed + 
+    ns(precip, df = 2) + 
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 precip_3_df_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp + wind_speed + ns(precip, knots = knots_precip) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp +
+    wind_speed +
+    ns(precip, df = 3, knots = knots_precip) +
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 summary(precip_3_df_cvd)
-anova(precip_linear_cvd, precip_2_df_cvd, test = 'F')
-anova(precip_2_df_cvd, precip_3_df_cvd, test = 'F')
-
-# again 2 seems to be appropriate 
+summary(precip_2_df_cvd)
+summary(precip_linear_cvd)
+anova(precip_linear_cvd, precip_2_df_cvd, test = 'F') # but 2 is better than linear
+anova(precip_2_df_cvd, precip_3_df_cvd, test = 'F') # 3 is not a better fit than 2
 
 
 # Wind --------------------------------------------------------------------
 
 wind_linear_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp + wind_speed + ns(precip, df = 2) + offset(n_benes),
+  n_resp ~ max_temp + wind_speed + precip + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_2_df_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp + ns(wind_speed, df = 2) + ns(precip, df = 2) + offset(n_benes),
+  n_resp ~ max_temp + ns(wind_speed, df = 2) + precip + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_3_df_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp +  ns(wind_speed, df = 3) + ns(precip, df = 2) + offset(n_benes),
+  n_resp ~ max_temp +  ns(wind_speed, df = 3) + precip + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_4_df_resp = gnm(
   data = test_confound,
-  n_resp ~ max_temp +  ns(wind_speed, df = 4) + ns(precip, df = 2) + offset(n_benes),
+  n_resp ~ max_temp +  ns(wind_speed, df = 4) + precip + offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 summary(wind_3_df_resp)
+summary(wind_2_df_resp)
+summary(wind_linear_resp)
+
+
 anova(wind_2_df_resp, wind_3_df_resp, test = 'F')
 anova(wind_linear_resp, wind_2_df_resp, test = 'F')
 anova(wind_3_df_resp, wind_4_df_resp, test = 'F')
@@ -138,36 +153,52 @@ anova(wind_3_df_resp, wind_4_df_resp, test = 'F')
 
 wind_linear_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp + wind_speed + ns(precip, df = 2) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp +
+    wind_speed + 
+    ns(precip, df = 2) + 
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_2_df_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp + ns(wind_speed, df = 2) + ns(precip, df = 2) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp + 
+    ns(wind_speed, df = 2) + 
+    ns(precip, df = 2) + 
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_3_df_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp +  ns(wind_speed, df = 3) + ns(precip, df = 2) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp +
+    ns(wind_speed, df = 3) +
+    ns(precip, df = 2) +
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 wind_4_df_cvd = gnm(
   data = test_confound,
-  n_cvd_no_hem_no_hyp ~ max_temp +  ns(wind_speed, df = 4) + ns(precip, df = 2) + offset(n_benes),
+  n_cvd_no_hem_no_hyp ~ max_temp + 
+    ns(wind_speed, df = 4) + 
+    ns(precip, df = 2) + 
+    offset(log(n_benes)),
   family = quasipoisson(),
   eliminate = as.factor(stratum)
 )
 
 summary(wind_3_df_cvd)
+summary(wind_4_df_cvd)
 anova(wind_2_df_cvd, wind_3_df_cvd, test = 'F')
 anova(wind_linear_cvd, wind_2_df_cvd, test = 'F')
 anova(wind_3_df_cvd, wind_4_df_cvd, test = 'F')
 
 # looks like 4 dfs is actually good
 # maybe that's not biologically plausible though? 
+# stick with 3? 4 is only marginally better
+
+# 3 dfs for both for wind 
