@@ -10,18 +10,58 @@ pacman::p_load(here, tidyverse, sf, ggthemes, viridis, data.table)
 # Read --------------------------------------------------------------------
 
 # medicare
-hosp <- readRDS(here("data", "num_hosp_by_day_by_county_inc_state.RDS"))
-benes <- readRDS(here('data', "benes_by_county_fips.RDS"))
+hosp <- readRDS(here("data", "an_dat_urgent_hosp_nov_5.RDS"))
 
 # us counties
 us_counties <- readRDS(here("data", "counties_sf.RDS"))
+
+
+# Plot --------------------------------------------------------------------
+
+k <- us_counties %>%
+  mutate(five_digit_fips = county_fips) %>%
+  left_join(hosp) %>%
+  left_join(benes)
+
+k <- k %>%
+  mutate(cvd_rate = n_cvd_no_hem_no_hyp / n_benes * 100000,
+         resp_rate = n_resp / n_benes * 100000) %>%
+  select(five_digit_fips, cvd_rate, resp_rate) %>%
+  distinct()
+
+p1 <-
+  k |>
+  ggplot() +
+  geom_sf(aes(fill = cvd_rate), color = NA) +
+  scale_fill_viridis_c(name = "Hospitalization rate") +
+  theme_map() +
+  ggtitle("2018 CVD hospitalization rate per 100,000 among medicare
+beneficiaries, not including hem stroke or hypertension related
+hospitalizations")
+
+ggsave(p1,
+       here("figures", 'figures_output', "cvd_hosp_ate_2018_nov_25.pdf"))
+
+p1 <-
+  k |>
+  ggplot() +
+  geom_sf(aes(fill = resp_rate), color = NA) +
+  scale_fill_viridis_c(name = "Hospitalization rate") +
+  theme_map() +
+  ggtitle("2018 respiratory-related hospitalization rate per 100,000 among 
+part A and B medicare beneficiaries")
+
+ggsave(p1,
+       here("figures", 'figures_output', "resp_hosp_ate_2018_nov_25.pdf"))
 
 # Clean -------------------------------------------------------------------
 
 # clean us county data to conus only
 # define the FIPS and letter codes for Alaska, Hawaii, and other territories
-excluded_states <- c("02", "15", "60", "66", "69", "72", "78")
-excluded_states_letters <- c("AK", "HI", "AS", "GU", "MP", "PR", "VI")
+excluded_states <- #c("02", "15", 
+                     c("60", "66", "69", "72", "78")
+excluded_states_letters <- #c("AK", "HI", 
+                             c("AS", "GU", "MP", "PR", "VI")
 
 # clean slightly
 conus_counties <- us_counties |>
@@ -29,15 +69,12 @@ conus_counties <- us_counties |>
   filter(!(state_fips %in% excluded_states))
 
 # summarize county daily hospitalizations to state
-state_hosp <- hosp |>
-  group_by(state, county) |>
-  summarize(
-    n_cvd = sum(n_cvd),
-    n_resp = sum(n_resp),
-    n_mi = sum(n_mi),
-    n_stroke = sum(n_stroke),
-    all_cvd = sum(n_cvd, n_stroke)
-  )
+# state_hosp <- hosp |>
+#   group_by(state, county) |>
+#   summarize(
+#     n_cvd_no_hem_no_hyp = sum(n_cvd_no_hem_no_hyp),
+#     n_resp = sum(n_resp)
+#   )
 
 # filter hospitalization counts and beneficiaries to conus
 state_hosp <- state_hosp |>

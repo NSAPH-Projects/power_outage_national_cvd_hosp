@@ -1,0 +1,324 @@
+---
+title: "table 1"
+output: html_document
+date: "2024-11-26"
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse, data.table, here)
+```
+
+
+```{r}
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
+
+dme_by_county <-
+  read_rds(here(
+    "data_for_upload",
+    "effect_mod_data",
+    "dme_use_by_county.RDS"
+  ))
+
+pov_by_county <-
+  read_rds(here(
+    "data_for_upload",
+    "effect_mod_data",
+    "pov_measures.RDS"
+  ))
+
+an_dat <- an_dat %>%
+  left_join(dme_by_county) %>%
+  left_join(pov_by_county)
+
+```
+
+```{r}
+calculate_weighted_exposure_stats <-
+  function(data, var, weight_var, is_categorical = FALSE) {
+    if (is_categorical) {
+      data %>%
+        group_by(!!sym(var)) %>%
+        summarize(
+          weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+          median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+        ) %>%
+        mutate(variable = var) %>%
+        rename(quartile = !!sym(var)) %>%
+        select(variable, quartile, weighted_mean_exposure, median_exposure)
+    } else {
+      data %>%
+        mutate(quartile = ntile(!!sym(var), 4)) %>%
+        group_by(quartile) %>%
+        summarize(
+          weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+          median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+        ) %>%
+        mutate(variable = var) %>%
+        select(variable,
+               quartile,
+               weighted_mean_exposure,
+               median_exposure)
+    }
+  }
+
+
+```
+
+```{r}
+calculate_weighted_exposure_stats <- function(data, var, weight_var, is_categorical = FALSE) {
+  if (is_categorical) {
+    data %>%
+      group_by(!!sym(var)) %>%
+      summarize(
+        weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var, weight_name = weight_var) %>%
+      rename(quartile = !!sym(var)) %>%
+      select(variable, quartile, weighted_mean_exposure, median_exposure, weight_name)
+  } else {
+    data %>%
+      mutate(quartile = ntile(!!sym(var), 4)) %>%
+      group_by(quartile) %>%
+      summarize(
+        weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var, weight_name = weight_var) %>%
+      select(variable, quartile, weighted_mean_exposure, median_exposure, weight_name)
+  }
+}
+```
+
+
+
+```{r}
+continuous_vars <- c("wind_speed", "max_temp", "precip")
+
+# List of categorical variables to calculate stats for
+categorical_vars <- c("dme_quartile", "pov_quartile")
+
+# Remove rows with NA values
+an_dat <- an_dat %>% drop_na()
+
+# Calculate stats for each continuous variable and combine results
+continuous_stats <- map_dfr(continuous_vars, ~calculate_weighted_exposure_stats(an_dat, .x, "n_benes", is_categorical = FALSE))
+
+# Calculate stats for each categorical variable and combine results
+categorical_stats <- map_dfr(categorical_vars, ~calculate_weighted_exposure_stats(an_dat, .x, "n_benes", is_categorical = TRUE))
+
+
+under_75 <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_under_75)
+over_75 <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_older_75)
+female <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_2)
+male <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_1)
+
+
+all <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes)
+
+an_dat <- an_dat %>% 
+  mutate(all_person_days_exposed = exposed_8_hrs_0.01 * n_benes,
+         over_75 = exposed_8_hrs_0.01 * n_benes_older_75,
+         under_75 = exposed_8_hrs_0.01 * n_benes_under_75,
+         female = exposed_8_hrs_0.01 * n_benes_sex_2,
+         male = exposed_8_hrs_0.01 * n_benes_sex_1)
+
+all <- sum(an_dat$all_person_days_exposed)
+o75 <- sum(an_dat$over_75)
+u75 <- sum(an_dat$under_75)
+ff <- sum(an_dat$female)
+mm <- sum(an_dat$male)
+
+
+# Combine all results into a single table
+
+exposure_stats_all <- bind_rows(continuous_stats, categorical_stats)
+```
+
+```{r}
+print(over_75)
+print(under_75)
+print(female)
+print(male)
+```
+
+```{r}
+print(exposure_stats_all)
+print(round(exposure_stats_all$weighted_mean_exposure, digits = 3))
+```
+
+
+```{r}
+calculate_exposure_stats <- function(data, var, is_categorical = FALSE) {
+  if (is_categorical) {
+    data %>%
+      group_by(!!sym(var)) %>%
+      summarize(
+        mean_exposure = mean(exposed_8_hrs_0.01, na.rm = TRUE),
+        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var) %>%
+      rename(quartile = !!sym(var)) %>%
+      select(variable, quartile, mean_exposure, median_exposure)
+  } else {
+    data %>%
+      mutate(quartile = ntile(!!sym(var), 4)) %>%
+      group_by(quartile) %>%
+      summarize(
+        mean_exposure = mean(exposed_8_hrs_0.01, na.rm = TRUE),
+        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var) %>%
+      select(variable, quartile, mean_exposure, median_exposure)
+  }
+}
+```
+
+
+```{r}
+continuous_vars <- c("wind_speed", "max_temp", "precip")
+
+# List of categorical variables to calculate stats for
+categorical_vars <- c("dme_quartile", "pov_quartile")
+
+# Remove rows with NA values
+an_dat <- an_dat %>% drop_na()
+
+# Calculate stats for each continuous variable and combine results
+continuous_stats <- map_dfr(continuous_vars, ~calculate_exposure_stats(an_dat, .x, is_categorical = FALSE))
+
+# Calculate stats for each categorical variable and combine results
+categorical_stats <- map_dfr(categorical_vars, ~calculate_exposure_stats(an_dat, .x, is_categorical = TRUE))
+
+# Combine all results into a single table
+exposure_stats_all <- bind_rows(continuous_stats, categorical_stats)
+
+overall_exposure <-
+  an_dat %>% summarize(
+    mean_po = mean(exposed_8_hrs_0.01),
+    median_po = median(exposed_8_hrs_0.01)
+  )
+
+under_75 <- an_dat %>% 
+  filter()
+```
+
+
+```{r}
+# Function to calculate quartiles of exposure within quartiles of a given variable
+calculate_exposure_quartiles <- function(data, var, is_categorical = FALSE) {
+  if (is_categorical) {
+    data %>%
+      group_by(!!sym(var)) %>%
+      summarize(
+        Q1 = quantile(exposed_8_hrs_0.01, 0.25, na.rm = TRUE),
+        Q2 = quantile(exposed_8_hrs_0.01, 0.50, na.rm = TRUE),
+        Q3 = quantile(exposed_8_hrs_0.01, 0.75, na.rm = TRUE),
+        Q4 = quantile(exposed_8_hrs_0.01, 1.00, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var) %>%
+      rename(quartile = !!sym(var)) %>%
+      select(variable, quartile, Q1, Q2, Q3, Q4)
+  } else {
+    data %>%
+      mutate(quartile = ntile(!!sym(var), 4)) %>%
+      group_by(quartile) %>%
+      summarize(
+        Q1 = quantile(exposed_8_hrs_0.01, 0.25, na.rm = TRUE),
+        Q2 = quantile(exposed_8_hrs_0.01, 0.50, na.rm = TRUE),
+        Q3 = quantile(exposed_8_hrs_0.01, 0.75, na.rm = TRUE),
+        Q4 = quantile(exposed_8_hrs_0.01, 1.00, na.rm = TRUE)
+      ) %>%
+      mutate(variable = var) %>%
+      select(variable, quartile, Q1, Q2, Q3, Q4)
+  }
+}
+
+# List of continuous variables to calculate quartiles for
+continuous_vars <- c("wind_speed", "max_temp", "precip")
+
+# List of categorical variables to calculate quartiles for
+categorical_vars <- c("pov_quartile", "dme_quartile")
+
+# Remove rows with NA values
+an_dat <- an_dat %>% drop_na()
+
+# Calculate quartiles for each continuous variable and combine results
+continuous_quartiles <- map_dfr(continuous_vars, ~calculate_exposure_quartiles(an_dat, .x, is_categorical = FALSE))
+
+# Calculate quartiles for each categorical variable and combine results
+categorical_quartiles <- map_dfr(categorical_vars, ~calculate_exposure_quartiles(an_dat, .x, is_categorical = TRUE))
+
+# Combine all results into a single table
+exposure_quartiles_all <- bind_rows(continuous_quartiles, categorical_quartiles)
+```
+
+
+
+```{r}
+calculate_exposure_quartiles <- function(data, var) {
+  data %>%
+    mutate(quartile = ntile(!!sym(var), 4)) %>%
+    group_by(quartile) %>%
+    summarize(
+      Q1 = quantile(exposed_8_hrs_0.01, 0.25, na.rm = TRUE),
+      Q2 = quantile(exposed_8_hrs_0.01, 0.50, na.rm = TRUE),
+      Q3 = quantile(exposed_8_hrs_0.01, 0.75, na.rm = TRUE),
+      Q4 = quantile(exposed_8_hrs_0.01, 1.00, na.rm = TRUE)
+    ) %>%
+    mutate(variable = var) %>%
+    select(variable, quartile, Q1, Q2, Q3, Q4)}
+
+# List of variables to calculate quartiles for
+variables <- c("wind_speed", "max_temp", "precip")
+
+# Calculate quartiles for each variable and combine results
+exposure_quartiles_all <- map_dfr(variables, ~calculate_exposure_quartiles(an_dat, .x))
+
+```
+
+
+```{r}
+
+# what goes in table 1?
+head(an_dat)
+
+colnames(an_dat)
+```
+```{r}
+find_quartiles <- function(x) {
+  # calculate the quartile boundaries
+  quartiles <- quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+  
+  # classify each number into quartiles
+  quartile_labels <- findInterval(x, vec = c(-Inf, quartiles, Inf))
+  
+  return(quartile_labels)
+}
+
+```
+
+```{r}
+an_dat <- an_dat %>% 
+  mutate(wind_speed_qs = ntile(wind_speed, 4),
+         precip_qs = find_quartiles(precip),
+         temp_qs = find_quartiles(max_temp))
+
+exposure_quartiles <- an_dat %>%
+  group_by(precip_qs) %>%
+  summarize(
+    Q1 = quantile(exposed_8_hrs_0.01, 0.25, na.rm = TRUE),
+    Q2 = quantile(exposed_8_hrs_0.01, 0.50, na.rm = TRUE),
+    Q3 = quantile(exposed_8_hrs_0.01, 0.75, na.rm = TRUE),
+    Q4 = quantile(exposed_8_hrs_0.01, 1.00, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+overall <- quantile(an_dat$exposed_8_hrs_0.01, probs = c(0.25, 0.5, 0.75, 1))
+
+
+
+```
+

@@ -11,7 +11,6 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 # Read --------------------------------------------------------------------
 
 an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_nov_5.RDS'))
-an_dat <- an_dat %>% mutate(log_n_benes = log(n_benes))
 
 # Models ------------------------------------------------------------------
 
@@ -26,7 +25,7 @@ cvd_dlnms <- run_dlnm_models(
   po_data = an_dat,
   outcome_col = 'n_cvd_no_hem_no_hyp',
   exposure_cols = exposure_columns,
-  offset_col = 'log_n_benes',
+  offset_col = 'n_benes',
   precip_dfs = 2,
   po_dfs = 6
 )
@@ -35,7 +34,7 @@ resp_dlnms <- run_dlnm_linear_precip(
   po_data = an_dat,
   outcome_col = 'n_resp',
   exposure_cols = exposure_columns,
-  offset_col = 'log_n_benes',
+  offset_col = 'n_benes',
   po_dfs = 3
 )
 
@@ -87,14 +86,14 @@ dlnm_main_analysis_plot <-
       fill = NA,
       size = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))  
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  scale_color_brewer(palette = "Set1")
 
 
 ggsave(
   dlnm_main_analysis_plot,
   filename = here(
-    'results',
-    'plots_of_results',
+    'figures_for_upload',
     'main_analysis_dlnm_nov_25.pdf'
   ),
   width = 14,

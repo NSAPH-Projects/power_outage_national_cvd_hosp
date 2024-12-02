@@ -336,9 +336,9 @@ run_dlnm_po_model_copilot <-
         "ns(wind_speed,",
         "df = 3)",
         "+",
-        "offset(",
+        "offset(log(",
         offset_col,
-        ")"
+        "))"
       )
     )
     
@@ -390,9 +390,9 @@ run_dlnm_po_model_linear_precip <-
         "ns(wind_speed,",
         "df = 3)",
         "+",
-        "offset(",
+        "offset(log(",
         offset_col,
-        ")"
+        "))"
       )
     )
     

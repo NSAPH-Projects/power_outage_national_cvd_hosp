@@ -9,7 +9,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_nov_5.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
 
 dme_by_county <-
   read_rds(here(
@@ -29,11 +29,11 @@ an_dat <- an_dat %>%
   left_join(dme_by_county) %>%
   left_join(pov_by_county)
 
+q1_2_3_pov <- an_dat %>% filter(pov_quartile != 4)
 q4_pov <- an_dat %>% filter(pov_quartile == 4)
-q1_pov <- an_dat %>% filter(pov_quartile == 1)
 
+q1_2_3_dme <- an_dat %>% filter(dme_quartile != 4)
 q4_dme <- an_dat %>% filter(dme_quartile == 4)
-q1_dme <- an_dat %>% filter(dme_quartile == 1)
 
 # Run ---------------------------------------------------------------------
 
@@ -70,10 +70,10 @@ effect_mod_models_cvd <- list(
     precip_dfs = 2,
     po_dfs = 6
   ),
-  cvd_pov_q1 = run_dlnm_po_model_copilot(
+  cvd_pov_q1_2_3 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
-    q1_pov,
+    q1_2_3_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
@@ -86,10 +86,10 @@ effect_mod_models_cvd <- list(
     precip_dfs = 2,
     po_dfs = 6
   ),
-  cvd_dme_q1 = run_dlnm_po_model_copilot(
+  cvd_dme_q1_2_3 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hem_no_hyp',
     offset_col = 'n_benes',
-    q1_dme,
+    q1_2_3_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
@@ -133,10 +133,10 @@ effect_mod_models_resp = list(
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
-  resp_pov_q1 = run_dlnm_po_model_linear_precip(
+  resp_pov_q1_2_3 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
-    q1_pov,
+    q1_2_3_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
@@ -147,10 +147,10 @@ effect_mod_models_resp = list(
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
-  resp_dme_q1 = run_dlnm_po_model_linear_precip(
+  resp_dme_q1_2_3 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
-    q1_dme,
+    q1_2_3_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
@@ -183,25 +183,14 @@ all_results <- all_results %>%
     grepl('dme', m_name) ~ 'DME',
     grepl('pov', m_name) ~ 'Poverty'
   )) %>% 
-  # mutate(cat = case_when(
-  #   grepl('75_over', m_name) ~ '1',
-  #   grepl('less_75', m_name) ~ '2',
-  #   grepl('female_benes', m_name) ~ '1',
-  #   grepl('male_benes', m_name) ~ '2',
-  #   grepl('pov_q1', m_name) ~ '1',
-  #   grepl('pov_q4', m_name) ~ '2',
-  #   grepl('dme_q1', m_name) ~ '1',
-  #   grepl('dme_q4', m_name) ~ '2'))
-
-
-mutate(cat = case_when(
+  mutate(cat = case_when(
   grepl('75_over', m_name) ~ '75 and over',
   grepl('less_75', m_name) ~ 'Younger than 75',
   grepl('female_benes', m_name) ~ 'Female',
   grepl('male_benes', m_name) ~ 'Male',
-  grepl('pov_q1', m_name) ~ '1st quartile poverty',
+  grepl('pov_q1', m_name) ~ '1st-3rd quartile poverty',
   grepl('pov_q4', m_name) ~ '4th quartile poverty',
-  grepl('dme_q1', m_name) ~ '1st quartile DME use',
+  grepl('dme_q1', m_name) ~ '1st-3rd quartile DME use',
   grepl('dme_q4', m_name) ~ '4th quartile DME use'))
 
 # plot 
@@ -236,11 +225,13 @@ effect_mod_plot <-
       fill = NA,
       size = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 5))
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) 
 
 ggsave(
   effect_mod_plot,
-  filename = here('results', 'plots_of_results', 'effect_mod_dlnm_nov_25.pdf'),
+  filename = here('figures_for_upload', 'effect_mod_dlnm_dec_1.pdf'),
   width = 17,
   height = 15
 )
+
+
