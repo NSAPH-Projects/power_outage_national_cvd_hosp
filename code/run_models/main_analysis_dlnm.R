@@ -10,7 +10,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_nov_5.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
 
 # Models ------------------------------------------------------------------
 
