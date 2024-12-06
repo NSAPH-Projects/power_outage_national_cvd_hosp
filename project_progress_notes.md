@@ -1,5 +1,49 @@
 # power_outage_national_cvd_hosp progress notes 
 
+December 5th:
+
+
+December 4th, 2024:
+
+Updates from meeting with Marianthi:
+- should try SVI instead of poverty, and plot DME and poverty for joan to look at 
+- point of n hrs out analysis was to see if there is a threshold at which POs start to affect health
+- should compare models with linear relationship between PO and health outcomes with models w 3 dfs using qAIC 
+
+Next steps:
+- do sensitivity with n hrs out dlnm (done)
+- make maps of DME and poverty and SVI (done)
+- do effect mod analysis with SVI 
+- 1-3 vs 4 or 1 vs 4? ask joan and marianthi what they think 
+- intro 
+- methods
+- supplementary figures 
+
+
+
+
+December 1st, 2024:
+
+New updates:
+- made main figures for paper (two figures + maps)
+- decided on submission to PNAS
+- still need to do some things:
+
+To-dos:
+- make table 1 
+- do extra analyses and make figures for supplement 
+  - n hrs out and outages, with dlnm (need feedback - also what's the point of this sens analysis?)
+  - cumulative lag plots for main analysis and effect mod 
+  - sensitivity analysis on duration plots 
+
+- write intro and methods
+- read alex's paper and copy that mostly 
+
+I think that's it.
+Then interpret results and write results, discussion, and conclusion. 
+oh and we need to figure out why a lot of counties seem to be excluded. 
+(done this seems correct)
+
 
 November 5th, 2024:
 
