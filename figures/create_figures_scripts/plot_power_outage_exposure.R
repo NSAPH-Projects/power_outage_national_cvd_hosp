@@ -12,7 +12,7 @@ pacman::p_load(here, tidyverse, data.table, fst, sf, ggthemes)
 # denoms
 denoms <- read_fst(
   here(
-    'data',
+    'local_data',
     'power_outage_exposure_data_cleaning_output',
     'county_customer_denoms_and_p_missing.fst'
   )
@@ -22,7 +22,7 @@ denoms <- read_fst(
 # points
 all_days <- read_fst(
   here(
-    "data",
+    "local_data",
     "power_outage_exposure_data_cleaning_output",
     "all_days_exposed_unexposed.fst"
   )

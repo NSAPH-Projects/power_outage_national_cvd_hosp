@@ -61,7 +61,7 @@ epsg_code <- 5070
 county_shp <- st_transform(county_shp, crs = epsg_code)
 
 # write 
-write_rds(county_shp, here("data", "cotus_county_shp_w_fips.RDS"))
+write_rds(county_shp, here("local_data", "cotus_county_shp_w_fips.RDS"))
 
 # also write backbone file with just fips and no geometry
 county_list <- county_shp %>%
