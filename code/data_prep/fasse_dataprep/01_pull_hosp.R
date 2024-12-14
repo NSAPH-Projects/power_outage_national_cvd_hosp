@@ -37,7 +37,7 @@ hosp_2018 <-
   as.data.table()
 
 # sample for checking code 
-# sampled_hosp <- hosp_2018[sample(.N, 10000)]
+# hosp_2018 <- hosp_2018[sample(.N, 10000)]
 
 icd_codes <- readRDS(here("data", "all_icd_codes.RDS"))
 
@@ -63,10 +63,12 @@ hosp_info <-
 
 # all cvd codes, including hypertension and hem stroke
 all_cvd <- icd_codes$all_cvd 
-# cvd without hem stroke or hypertension
-cvd_no_hem_no_hyp <- icd_codes$cvd_no_hem_no_hyp 
+# cvd without hypertension
+cvd_no_hyp <- icd_codes$cvd_no_hyp
 # all respiratory codes
-resp <- icd_codes$resp
+resp <- icd_codes$all_resp
+# all hypertension codes
+hyp <- icd_codes$hyp_codes
 
 # code cols 
 code_columns <- c("code_1", "code_2", "code_3", "code_4", "code_5")
@@ -76,12 +78,16 @@ hosp_info <- hosp_info[, contains_any_cvd_code :=
                          contains_any_code(.SD, all_cvd),
                        .SDcols = code_columns]
 
-hosp_info <- hosp_info[, contains_cvd_no_hem_no_hyp :=
-                         contains_any_code(.SD, cvd_no_hem_no_hyp),
+hosp_info <- hosp_info[, contains_cvd_no_hyp :=
+                         contains_any_code(.SD, cvd_no_hyp),
                        .SDcols = code_columns]
 
 hosp_info <- hosp_info[, contains_resp_code :=
                          contains_any_code(.SD, resp),
+                       .SDcols = code_columns]
+
+hosp_info <- hosp_info[, contains_hyp_code :=
+                         contains_any_code(.SD, hyp),
                        .SDcols = code_columns]
 
 # identify emergency and urgent vs non emergency
@@ -105,7 +111,7 @@ urgent_hosp_by_day_by_county <- hosp_info[is_urg_or_emerg == 1]
 urg_hosp_by_sex <-
   urgent_hosp_by_day_by_county[sex != 0, .(
     n_all_cvd = sum(contains_any_cvd_code),
-    n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
+    n_cvd_no_hyp = sum(contains_cvd_no_hyp),
     n_resp = sum(contains_resp_code)
   ),
   by = .(admission_date, county, state, sex)]
@@ -116,7 +122,7 @@ urg_hosp_by_sex <-
     admission_date + county + state ~ sex,
     value.var = c(
       "n_all_cvd",
-      "n_cvd_no_hem_no_hyp",
+      "n_cvd_no_hyp",
       "n_resp"
     )
   )
@@ -127,7 +133,7 @@ setnames(urg_hosp_by_sex, old = names(urg_hosp_by_sex)[-(1:3)],
 
 urg_hosp_by_age <- urgent_hosp_by_day_by_county[, .(
   n_all_cvd = sum(contains_any_cvd_code),
-  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
+  n_cvd_no_hyp = sum(contains_cvd_no_hyp),
   n_resp = sum(contains_resp_code)
 ),
 by = .(admission_date, county, state, age)]
@@ -139,7 +145,7 @@ urg_hosp_by_age <-
     admission_date + county + state ~ age,
     value.var = c(
       "n_all_cvd",
-      "n_cvd_no_hem_no_hyp",
+      "n_cvd_no_hyp",
       "n_resp"
     )
   )
@@ -150,8 +156,10 @@ setnames(urg_hosp_by_age, old = names(urg_hosp_by_age)[-(1:3)],
 # summarize total hospitalizations 
 urgent_hosp_by_day_by_county <- urgent_hosp_by_day_by_county[, .(
   n_all_cvd = sum(contains_any_cvd_code),
-  n_cvd_no_hem_no_hyp = sum(contains_cvd_no_hem_no_hyp),
-  n_resp = sum(contains_resp_code)),
+  n_cvd_no_hyp = sum(contains_cvd_no_hyp),
+  n_resp = sum(contains_resp_code),
+  n_hyp = sum(contains_hyp_code),
+  n_all = .N),
   by = .(admission_date, county, state)
 ]
 
@@ -170,7 +178,7 @@ write_rds(
   urgent_hosp_by_day_by_county,
   here(
     "data",
-    "urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_1.RDS"
+    "urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_13.RDS"
   )
 )
 
@@ -190,5 +198,4 @@ benes_summary <- benes_2018[, .(
 ), by = .(county, state)]
 
 write_rds(benes_summary, here('data', 'benes_by_county_fips_dec_1.RDS'))
-
 

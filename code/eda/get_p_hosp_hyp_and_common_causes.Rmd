@@ -1,0 +1,80 @@
+---
+title: "get_hosp_containing_hyp_and_common_causes"
+output: html_document
+date: "2024-12-13"
+---
+
+```{r, cache=T}
+# make a table of ICD codes for the supplement
+
+pacman::p_load(tidyverse, here, data.table)
+
+icd_codes <- read_rds(here('data', 'all_icd_codes.RDS'))
+
+cvd <- paste(icd_codes$all_cvd, collapse = ",")
+resp <- paste(icd_codes$all_resp, collapse = ",")
+hyp <- paste(icd_codes$hyp_codes, collapse = ",")
+
+cat(cvd)
+cat(resp)
+cat(hyp)
+
+```
+
+```{r}
+pacman::p_load(tidyverse, here, data.table)
+# then want proportion of hospitalizations that were for hypertension
+hosp_by_county_day <-
+  read_rds(here("data", "urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_13.RDS"))
+
+total_hosp <- sum(hosp_by_county_day$n_all)
+hyp_hosp <- sum(hosp_by_county_day$n_hyp)
+cvd_hosp <- sum(hosp_by_county_day$n_all_cvd)
+
+prop_hyp = hyp_hosp/total_hosp
+print(prop_hyp)
+
+prop_of_cvd_with_hyp = hyp_hosp/cvd_hosp
+print(prop_of_cvd_with_hyp)
+# so 45% of hospitalizations coded for hypertension were not otherwise CVD hospitalizations
+```
+
+```{r}
+# also want most common hospitalization reasons
+pacman::p_load(tidyverse, here, data.table)
+
+panel_fips <- read_rds(here('data_for_upload', 'panel_for_2018.RDS')) |>
+  rename(day = date)
+
+hosp_info <-
+  arrow::read_parquet(here('data', "medpar_hospitalizations_2018.parquet")) |>
+  as.data.table()
+
+hosp_info <- hosp_info |>
+  mutate(admission_date = as.Date(admission_date)) |>
+  filter(admission_date %in% panel_fips$day)
+
+# get the first five ICD codes
+hosp_info <-
+  hosp_info[, paste0("code_", 1:5) := transpose(lapply(diagnoses, function(x) {
+    length(x) <- 5
+    x
+  }))]
+
+all_codes <- c(hosp_info$code_1, hosp_info$code_2, hosp_info$code_3, hosp_info$code_4,
+               hosp_info$code_5)
+
+# Count the frequency of each string
+string_freq <- table(all_codes)
+
+# Sort the frequencies in descending order and get the top 3
+top_ten <- head(sort(string_freq, decreasing = TRUE), 20)
+
+# Get the names of the top three most frequent entries
+top_ten_entries <- names(top_ten)
+
+print(top_ten_entries)
+
+```
+
+

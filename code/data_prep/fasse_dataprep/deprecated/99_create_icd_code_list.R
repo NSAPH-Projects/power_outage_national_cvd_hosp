@@ -6,6 +6,8 @@
 # we have separate lists because we might want to do analyses breaking down
 # CVD-related hospitalizations into multiple categories
 
+library(tidyverse)
+
 # here, aiming to capture any hospitalization for an MI
 # myocardial infarction
 mi_icd_9 <- c(
@@ -495,6 +497,16 @@ all_icd_codes <- list(
     afib_icd_9,
     istroke_icd_10,
     istroke_icd_9
+  ),
+  cvd_no_hyp = c(
+    mi_icd_10,
+    mi_icd_9,
+    afib_icd_10,
+    afib_icd_9,
+    istroke_icd_10,
+    istroke_icd_9,
+    hem_stroke_icd_10,
+    hem_stroke_icd_9
   ),
   all_cvd = c(
     mi_icd_10,
