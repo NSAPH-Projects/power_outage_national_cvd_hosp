@@ -23,7 +23,8 @@ cat(hyp)
 
 ```{r}
 pacman::p_load(tidyverse, here, data.table)
-# then want proportion of hospitalizations that were for hypertension
+# then want proportion of hospitalizations that were for hypertension out of all 
+# hospitalizations 
 hosp_by_county_day <-
   read_rds(here("data", "urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_13.RDS"))
 
@@ -37,19 +38,46 @@ print(prop_hyp)
 prop_of_cvd_with_hyp = hyp_hosp/cvd_hosp
 print(prop_of_cvd_with_hyp)
 # so 45% of hospitalizations coded for hypertension were not otherwise CVD hospitalizations
+# almost half
+
+# then want respiratory hosp rate and CVD hosp rate across counties 
+mean_resp = mean(hosp_by_county_day$n_resp)
+mean_cvd = mean(hosp_by_county_day$n_cvd_no_hyp)
+print(mean_resp)
+print(mean_cvd)
+  
 ```
 
 ```{r}
-# also want most common hospitalization reasons
+# also want most common hospitalization reasons for CVD and resp
+# emergency hosp
+
+# need helper
+contains_any_code <- function(codes, condition) {
+  as.integer(Reduce(`|`, lapply(codes, `%chin%`, condition)))
+}
+
+# all cvd codes, including hypertension and hem stroke
+all_cvd <- icd_codes$all_cvd 
+# cvd without hypertension
+cvd_no_hyp <- icd_codes$cvd_no_hyp
+# all respiratory codes
+resp <- icd_codes$all_resp
+# all hypertension codes
+hyp <- icd_codes$hyp_codes
+
 pacman::p_load(tidyverse, here, data.table)
 
+# get fips
 panel_fips <- read_rds(here('data_for_upload', 'panel_for_2018.RDS')) |>
   rename(day = date)
 
+# get hosps 
 hosp_info <-
   arrow::read_parquet(here('data', "medpar_hospitalizations_2018.parquet")) |>
   as.data.table()
 
+# filter to 2018
 hosp_info <- hosp_info |>
   mutate(admission_date = as.Date(admission_date)) |>
   filter(admission_date %in% panel_fips$day)
@@ -61,6 +89,68 @@ hosp_info <-
     x
   }))]
 
+# indicate emergency or urgent hospitalizations
+hosp_info[, `:=`(
+  is_urg_or_emerg = ifelse(admsn_type_cd == 1 | admsn_type_cd == 2, 1, 0)
+)]
+
+# filter to urg or emerg
+hosp_info <- hosp_info[is_urg_or_emerg == 1]
+
+code_columns <- c('code_1', 'code_2', 'code_3', 'code_4', 'code_5')
+
+# mark those containing CVD 
+hosp_info <- hosp_info[, contains_cvd_no_hyp :=
+                         contains_any_code(.SD, cvd_no_hyp),
+                       .SDcols = code_columns]
+
+# and resp 
+hosp_info <- hosp_info[, contains_resp_code :=
+                         contains_any_code(.SD, resp),
+                       .SDcols = code_columns]
+```
+
+
+```{r}
+# extract codes for CVD reasons
+hosp_cvd <- hosp_info[contains_cvd_no_hyp == 1]
+
+cvd_codes <- c(hosp_cvd$code_1, hosp_cvd$code_2, hosp_cvd$code_3, hosp_cvd$code_4,
+               hosp_cvd$code_5)
+
+# Count the frequency of each string
+string_freq <- table(cvd_codes)
+
+# Sort the frequencies in descending order and get the top 3
+top_20 <- head(sort(string_freq, decreasing = TRUE), 20)
+
+# Get the names of the top three most frequent entries
+top_20_entries <- names(top_20)
+
+print(top_20_entries)
+```
+
+```{r}
+# extract codes for resp reasons
+hosp_resp <- hosp_info[contains_resp_code == 1]
+
+resp_codes <- c(hosp_resp$code_1, hosp_resp$code_2, hosp_resp$code_3, hosp_resp$code_4,
+               hosp_resp$code_5)
+
+# Count the frequency of each string
+string_freq <- table(resp_codes)
+
+# Sort the frequencies in descending order and get the top 3
+top_20 <- head(sort(string_freq, decreasing = TRUE), 20)
+
+# Get the names of the top three most frequent entries
+top_20_entries <- names(top_20)
+
+print(top_20_entries)
+```
+
+```{r}
+# extract codes for CVD reasons
 all_codes <- c(hosp_info$code_1, hosp_info$code_2, hosp_info$code_3, hosp_info$code_4,
                hosp_info$code_5)
 
@@ -68,13 +158,12 @@ all_codes <- c(hosp_info$code_1, hosp_info$code_2, hosp_info$code_3, hosp_info$c
 string_freq <- table(all_codes)
 
 # Sort the frequencies in descending order and get the top 3
-top_ten <- head(sort(string_freq, decreasing = TRUE), 20)
+top_20 <- head(sort(string_freq, decreasing = TRUE), 20)
 
 # Get the names of the top three most frequent entries
-top_ten_entries <- names(top_ten)
+top_20_entries <- names(top_20)
 
-print(top_ten_entries)
-
+print(top_20_entries)
 ```
 
 

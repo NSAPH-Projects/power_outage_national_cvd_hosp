@@ -10,7 +10,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
 
 # Models ------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ exposure_columns <-
 
 cvd_dlnms <- run_dlnm_models(
   po_data = an_dat,
-  outcome_col = 'n_cvd_no_hem_no_hyp',
+  outcome_col = 'n_cvd_no_hyp',
   exposure_cols = exposure_columns,
   offset_col = 'n_benes',
   precip_dfs = 2,
@@ -54,9 +54,9 @@ all_results <- rbindlist(list(cvd_dlnm_preds, resp_dlnm_preds))
 # rename m_name values
 all_results <- all_results %>% 
   mutate(m_name = recode(m_name, 
-                         'exposed_8_hrs_0.01' = '0.01',
-                         'exposed_8_hrs_0.03' = '0.03',
-                         'exposed_8_hrs_0.05' = '0.05'))
+                         'exposed_8_hrs_0.01' = '1%',
+                         'exposed_8_hrs_0.03' = '3%',
+                         'exposed_8_hrs_0.05' = '5%'))
 # plot 
 dlnm_main_analysis_plot <- 
   all_results %>%
@@ -74,11 +74,11 @@ dlnm_main_analysis_plot <-
   facet_grid( ~ outcome_type) +
   theme_minimal(base_size = 15) +
   labs(
-    x = "Lag", 
-    y = "Risk ratio", 
+    x = "Lag (days)", 
+    y = "Rate ratio", 
     color = "Size of power outage:\n X% of county out or more") + 
   ggtitle(paste0("Association between power outage exposure and ",
-  "hospitalizations\nin older adults (age >=65) in Medicare parts A and B")) +
+  "hospitalizations\nin older adults (age >=65) in fee-for-service Medicare")) +
   theme(
     panel.spacing = unit(1, "lines"),
     panel.border = element_rect(
@@ -94,7 +94,7 @@ ggsave(
   dlnm_main_analysis_plot,
   filename = here(
     'figures_for_upload',
-    'main_analysis_dlnm_nov_25.pdf'
+    'main_analysis_dlnm_dec_17.pdf'
   ),
   width = 14,
   height = 7

@@ -372,7 +372,8 @@ cat(cvd)</code></pre>
 <pre class="r"><code>cat(hyp)</code></pre>
 <pre><code>## I10,I110,I119,I120,I129,I130,I1310,I1311,I132,I150,I151,I152,I158,I159,I160,I161,I169</code></pre>
 <pre class="r"><code>pacman::p_load(tidyverse, here, data.table)
-# then want proportion of hospitalizations that were for hypertension
+# then want proportion of hospitalizations that were for hypertension out of all 
+# hospitalizations 
 hosp_by_county_day &lt;-
   read_rds(here(&quot;data&quot;, &quot;urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_13.RDS&quot;))
 
@@ -386,17 +387,45 @@ print(prop_hyp)</code></pre>
 <pre class="r"><code>prop_of_cvd_with_hyp = hyp_hosp/cvd_hosp
 print(prop_of_cvd_with_hyp)</code></pre>
 <pre><code>## [1] 0.5458399</code></pre>
-<pre class="r"><code># so 45% of hospitalizations coded for hypertension were not otherwise CVD hospitalizations</code></pre>
-<pre class="r"><code># also want most common hospitalization reasons
+<pre class="r"><code># so 45% of hospitalizations coded for hypertension were not otherwise CVD hospitalizations
+# almost half
+
+# then want respiratory hosp rate and CVD hosp rate across counties 
+mean_resp = mean(hosp_by_county_day$n_resp)
+mean_cvd = mean(hosp_by_county_day$n_cvd_no_hyp)
+print(mean_resp)</code></pre>
+<pre><code>## [1] 2.866635</code></pre>
+<pre class="r"><code>print(mean_cvd)</code></pre>
+<pre><code>## [1] 4.062095</code></pre>
+<pre class="r"><code># also want most common hospitalization reasons for CVD and resp
+# emergency hosp
+
+# need helper
+contains_any_code &lt;- function(codes, condition) {
+  as.integer(Reduce(`|`, lapply(codes, `%chin%`, condition)))
+}
+
+# all cvd codes, including hypertension and hem stroke
+all_cvd &lt;- icd_codes$all_cvd 
+# cvd without hypertension
+cvd_no_hyp &lt;- icd_codes$cvd_no_hyp
+# all respiratory codes
+resp &lt;- icd_codes$all_resp
+# all hypertension codes
+hyp &lt;- icd_codes$hyp_codes
+
 pacman::p_load(tidyverse, here, data.table)
 
+# get fips
 panel_fips &lt;- read_rds(here(&#39;data_for_upload&#39;, &#39;panel_for_2018.RDS&#39;)) |&gt;
   rename(day = date)
 
+# get hosps 
 hosp_info &lt;-
   arrow::read_parquet(here(&#39;data&#39;, &quot;medpar_hospitalizations_2018.parquet&quot;)) |&gt;
   as.data.table()
 
+# filter to 2018
 hosp_info &lt;- hosp_info |&gt;
   mutate(admission_date = as.Date(admission_date)) |&gt;
   filter(admission_date %in% panel_fips$day)
@@ -416,22 +445,80 @@ hosp_info &lt;-
 ## instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn&#39;t
 ## help, please report your use case to the data.table issue tracker so the root
 ## cause can be fixed or this message improved.</code></pre>
-<pre class="r"><code>all_codes &lt;- c(hosp_info$code_1, hosp_info$code_2, hosp_info$code_3, hosp_info$code_4,
+<pre class="r"><code># indicate emergency or urgent hospitalizations
+hosp_info[, `:=`(
+  is_urg_or_emerg = ifelse(admsn_type_cd == 1 | admsn_type_cd == 2, 1, 0)
+)]
+
+# filter to urg or emerg
+hosp_info &lt;- hosp_info[is_urg_or_emerg == 1]
+
+code_columns &lt;- c(&#39;code_1&#39;, &#39;code_2&#39;, &#39;code_3&#39;, &#39;code_4&#39;, &#39;code_5&#39;)
+
+# mark those containing CVD 
+hosp_info &lt;- hosp_info[, contains_cvd_no_hyp :=
+                         contains_any_code(.SD, cvd_no_hyp),
+                       .SDcols = code_columns]
+
+# and resp 
+hosp_info &lt;- hosp_info[, contains_resp_code :=
+                         contains_any_code(.SD, resp),
+                       .SDcols = code_columns]</code></pre>
+<pre class="r"><code># extract codes for CVD reasons
+hosp_cvd &lt;- hosp_info[contains_cvd_no_hyp == 1]
+
+cvd_codes &lt;- c(hosp_cvd$code_1, hosp_cvd$code_2, hosp_cvd$code_3, hosp_cvd$code_4,
+               hosp_cvd$code_5)
+
+# Count the frequency of each string
+string_freq &lt;- table(cvd_codes)
+
+# Sort the frequencies in descending order and get the top 3
+top_20 &lt;- head(sort(string_freq, decreasing = TRUE), 20)
+
+# Get the names of the top three most frequent entries
+top_20_entries &lt;- names(top_20)
+
+print(top_20_entries)</code></pre>
+<pre><code>##  [1] &quot;N179&quot;  &quot;I130&quot;  &quot;I10&quot;   &quot;I110&quot;  &quot;I2510&quot; &quot;I5033&quot; &quot;J9601&quot; &quot;I4891&quot; &quot;J189&quot; 
+## [10] &quot;I5032&quot; &quot;I480&quot;  &quot;N390&quot;  &quot;E785&quot;  &quot;I214&quot;  &quot;A419&quot;  &quot;E871&quot;  &quot;I5023&quot; &quot;J441&quot; 
+## [19] &quot;E119&quot;  &quot;J9621&quot;</code></pre>
+<pre class="r"><code># extract codes for resp reasons
+hosp_resp &lt;- hosp_info[contains_resp_code == 1]
+
+resp_codes &lt;- c(hosp_resp$code_1, hosp_resp$code_2, hosp_resp$code_3, hosp_resp$code_4,
+               hosp_resp$code_5)
+
+# Count the frequency of each string
+string_freq &lt;- table(resp_codes)
+
+# Sort the frequencies in descending order and get the top 3
+top_20 &lt;- head(sort(string_freq, decreasing = TRUE), 20)
+
+# Get the names of the top three most frequent entries
+top_20_entries &lt;- names(top_20)
+
+print(top_20_entries)</code></pre>
+<pre><code>##  [1] &quot;J189&quot;  &quot;J9601&quot; &quot;J441&quot;  &quot;A419&quot;  &quot;N179&quot;  &quot;J9621&quot; &quot;I130&quot;  &quot;J690&quot;  &quot;J449&quot; 
+## [10] &quot;J440&quot;  &quot;I10&quot;   &quot;I110&quot;  &quot;I5033&quot; &quot;N390&quot;  &quot;E871&quot;  &quot;G9341&quot; &quot;J90&quot;   &quot;E872&quot; 
+## [19] &quot;E43&quot;   &quot;R6521&quot;</code></pre>
+<pre class="r"><code># extract codes for CVD reasons
+all_codes &lt;- c(hosp_info$code_1, hosp_info$code_2, hosp_info$code_3, hosp_info$code_4,
                hosp_info$code_5)
 
 # Count the frequency of each string
 string_freq &lt;- table(all_codes)
 
 # Sort the frequencies in descending order and get the top 3
-top_ten &lt;- head(sort(string_freq, decreasing = TRUE), 20)
+top_20 &lt;- head(sort(string_freq, decreasing = TRUE), 20)
 
 # Get the names of the top three most frequent entries
-top_ten_entries &lt;- names(top_ten)
+top_20_entries &lt;- names(top_20)
 
-print(top_ten_entries)</code></pre>
-<pre><code>##  [1] &quot;I10&quot;   &quot;N179&quot;  &quot;N390&quot;  &quot;E785&quot;  &quot;J189&quot;  &quot;M6281&quot; &quot;A419&quot;  &quot;I130&quot;  &quot;J9601&quot;
-## [10] &quot;I2510&quot; &quot;E871&quot;  &quot;E119&quot;  &quot;D62&quot;   &quot;I110&quot;  &quot;J441&quot;  &quot;I4891&quot; &quot;J449&quot;  &quot;R262&quot; 
-## [19] &quot;E039&quot;  &quot;K219&quot;</code></pre>
+print(top_20_entries)</code></pre>
+<pre><code>##  [1] &quot;N179&quot;  &quot;I10&quot;   &quot;N390&quot;  &quot;A419&quot;  &quot;J189&quot;  &quot;I130&quot;  &quot;J9601&quot; &quot;E871&quot;  &quot;E785&quot; 
+## [10] &quot;I110&quot;  &quot;J441&quot;  &quot;I2510&quot; &quot;E119&quot;  &quot;G9341&quot; &quot;D62&quot;   &quot;E872&quot;  &quot;I5033&quot; &quot;J9621&quot;
+## [19] &quot;I4891&quot; &quot;I5032&quot;</code></pre>
 
 
 

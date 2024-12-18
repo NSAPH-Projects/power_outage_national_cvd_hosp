@@ -9,7 +9,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
 
 dme_by_county <-
   read_rds(here(
@@ -29,10 +29,10 @@ an_dat <- an_dat %>%
   left_join(dme_by_county) %>%
   left_join(pov_by_county)
 
-q1_2_3_pov <- an_dat %>% filter(pov_quartile != 4)
+q1_pov <- an_dat %>% filter(pov_quartile == 1)
 q4_pov <- an_dat %>% filter(pov_quartile == 4)
 
-q1_2_3_dme <- an_dat %>% filter(dme_quartile != 4)
+q1_dme <- an_dat %>% filter(dme_quartile == 1)
 q4_dme <- an_dat %>% filter(dme_quartile == 4)
 
 # Run ---------------------------------------------------------------------
@@ -40,14 +40,14 @@ q4_dme <- an_dat %>% filter(dme_quartile == 4)
 effect_mod_models_cvd <- list(
   cvd_75_over = run_dlnm_po_model_copilot(
     po_data = an_dat,
-    outcome_col = 'n_cvd_no_hem_no_hyp_1_age',
+    outcome_col = 'n_cvd_no_hyp_1_age',
     exposure_col = 'exposed_8_hrs_0.01',
     offset_col = 'n_benes_older_75',
     precip_dfs = 2,
     po_dfs = 6
   ),
   cvd_less_75 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp_0_age',
+    outcome_col = 'n_cvd_no_hyp_0_age',
     offset_col = 'n_benes_under_75',
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -55,7 +55,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 6
   ),
   cvd_male_benes = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp_1_sex',
+    outcome_col = 'n_cvd_no_hyp_1_sex',
     offset_col = 'n_benes_sex_1',
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -63,39 +63,39 @@ effect_mod_models_cvd <- list(
     po_dfs = 6
   ),
   cvd_female_benes = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp_2_sex',
+    outcome_col = 'n_cvd_no_hyp_2_sex',
     offset_col = 'n_benes_sex_2',
     an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
   ),
-  cvd_pov_q1_2_3 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp',
+  cvd_pov_q1 = run_dlnm_po_model_copilot(
+    outcome_col = 'n_cvd_no_hyp',
     offset_col = 'n_benes',
-    q1_2_3_pov,
+    q1_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
   ),
   cvd_pov_q4 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp',
+    outcome_col = 'n_cvd_no_hyp',
     offset_col = 'n_benes',
     q4_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
   ),
-  cvd_dme_q1_2_3 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp',
+  cvd_dme_q1 = run_dlnm_po_model_copilot(
+    outcome_col = 'n_cvd_no_hyp',
     offset_col = 'n_benes',
-    q1_2_3_dme,
+    q1_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
     po_dfs = 6
   ),
   cvd_dme_q4 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hem_no_hyp',
+    outcome_col = 'n_cvd_no_hyp',
     offset_col = 'n_benes',
     q4_dme,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -133,10 +133,10 @@ effect_mod_models_resp = list(
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
-  resp_pov_q1_2_3 = run_dlnm_po_model_linear_precip(
+  resp_pov_q1 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
-    q1_2_3_pov,
+    q1_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
@@ -147,10 +147,10 @@ effect_mod_models_resp = list(
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
-  resp_dme_q1_2_3 = run_dlnm_po_model_linear_precip(
+  resp_dme_q1 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
-    q1_2_3_dme,
+    q1_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
@@ -185,12 +185,12 @@ all_results <- all_results %>%
   )) %>% 
   mutate(cat = case_when(
   grepl('75_over', m_name) ~ '75 and over',
-  grepl('less_75', m_name) ~ 'Younger than 75',
+  grepl('less_75', m_name) ~ 'Age 65 - 75',
   grepl('female_benes', m_name) ~ 'Female',
   grepl('male_benes', m_name) ~ 'Male',
-  grepl('pov_q1', m_name) ~ '1st-3rd quartile poverty',
+  grepl('pov_q1', m_name) ~ '1st quartile poverty',
   grepl('pov_q4', m_name) ~ '4th quartile poverty',
-  grepl('dme_q1', m_name) ~ '1st-3rd quartile DME use',
+  grepl('dme_q1', m_name) ~ '1st quartile DME use',
   grepl('dme_q4', m_name) ~ '4th quartile DME use'))
 
 # plot 
@@ -210,13 +210,13 @@ effect_mod_plot <-
   facet_grid(effect_mod_type ~ outcome_type, scales = 'free_y') +
   theme_minimal(base_size = 25) +
   labs(
-    x = "Lag", 
-    y = "Risk ratio", 
+    x = "Lag (days)", 
+    y = "Rate ratio", 
     color = "") + 
   ggtitle(
     paste0("Association between power outage exposure and ",
            "hospitalizations\nin older adults (age >=65) in ",
-           "Medicare parts A and B")) +
+           "fee-for-service Medicare")) +
   labs(subtitle = 'Stratified by potential effect modifiers') +
   theme(
     panel.spacing = unit(1, "lines"),
@@ -229,7 +229,7 @@ effect_mod_plot <-
 
 ggsave(
   effect_mod_plot,
-  filename = here('figures_for_upload', 'effect_mod_dlnm_dec_1.pdf'),
+  filename = here('figures_for_upload', 'effect_mod_dlnm_dec_17.pdf'),
   width = 17,
   height = 15
 )
