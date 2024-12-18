@@ -3,4 +3,5 @@
 .Rproj.user
 .DS_Store
 /figures/figures_output
-.Rhistory
+.Rhistory.venv/
+.poweroutages

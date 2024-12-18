@@ -10,7 +10,7 @@
 # Last updated: Oct 3rd, 2024
 # Author: Heather 
 
-pacman::p_load(sf, here, tidyverse, data.table)
+pacman::p_load(sf, here, tidyverse, data.table, sfarrow)
 
 # set shapefile for whole project 
 # states we wish to include: just being very clear about this list 
@@ -48,7 +48,7 @@ write_rds(cotus_state_fips_abbrev,
 county_shp <- tigris::counties(year = 2020) # get
 county_shp <- county_shp |> # save relevant info only
   mutate(five_digit_fips = paste0(STATEFP, COUNTYFP)) |>
-  select(five_digit_fips, 
+  dplyr::select(five_digit_fips, 
          state_fips = STATEFP, 
          county_fips = COUNTYFP,
          county_name = NAME) 
@@ -62,6 +62,7 @@ county_shp <- st_transform(county_shp, crs = epsg_code)
 
 # write 
 write_rds(county_shp, here("local_data", "cotus_county_shp_w_fips.RDS"))
+st_write_parquet(county_shp, here('local_data', 'cotus_county_shp_w_fips.parquet'))
 
 # also write backbone file with just fips and no geometry
 county_list <- county_shp %>%
