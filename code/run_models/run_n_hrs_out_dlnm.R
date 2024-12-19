@@ -21,7 +21,7 @@ temp_crossbasis_ns <- crossbasis(
   arglag = list(fun = "ns", df = 3)
 )
 
-# 3 df for continuous PO exposure 
+# 3 df for continuous PO exposure, lag dim 5
 power_outage_crossbasis_3_df <- crossbasis(
   an_dat$n_hrs_out_0.01,
   lag = 6,
@@ -29,12 +29,28 @@ power_outage_crossbasis_3_df <- crossbasis(
   arglag = list(fun = "ns", df = 5)
 )
 
-# linear for continuous PO exposure
-power_outage_crossbasis_linear <- crossbasis(
+# linear for continuous PO exposure, lag df 5
+power_outage_crossbasis_linear_lag_5_df <- crossbasis(
   an_dat$n_hrs_out_0.01,
   lag = 6,
   argvar = list(fun = "lin"),
   arglag = list(fun = "ns", df = 5)
+)
+
+# linear for continuous PO exposure, lag df 4
+power_outage_crossbasis_linear_lag_4_df <- crossbasis(
+  an_dat$n_hrs_out_0.01,
+  lag = 6,
+  argvar = list(fun = "lin"),
+  arglag = list(fun = "ns", df = 4)
+)
+
+# linear for continuous PO exposure, lag df 3
+power_outage_crossbasis_linear_lag_3_df <- crossbasis(
+  an_dat$n_hrs_out_0.01,
+  lag = 6,
+  argvar = list(fun = "lin"),
+  arglag = list(fun = "ns", df = 3)
 )
 
 # models

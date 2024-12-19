@@ -44,7 +44,7 @@ effect_mod_models_cvd <- list(
     exposure_col = 'exposed_8_hrs_0.01',
     offset_col = 'n_benes_older_75',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_less_75 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp_0_age',
@@ -52,7 +52,7 @@ effect_mod_models_cvd <- list(
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_male_benes = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp_1_sex',
@@ -60,7 +60,7 @@ effect_mod_models_cvd <- list(
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_female_benes = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp_2_sex',
@@ -68,7 +68,7 @@ effect_mod_models_cvd <- list(
     an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_pov_q1 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp',
@@ -76,7 +76,7 @@ effect_mod_models_cvd <- list(
     q1_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_pov_q4 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp',
@@ -84,7 +84,7 @@ effect_mod_models_cvd <- list(
     q4_pov,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_dme_q1 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp',
@@ -92,7 +92,7 @@ effect_mod_models_cvd <- list(
     q1_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   ),
   cvd_dme_q4 = run_dlnm_po_model_copilot(
     outcome_col = 'n_cvd_no_hyp',
@@ -100,7 +100,7 @@ effect_mod_models_cvd <- list(
     q4_dme,
     exposure_col = 'exposed_8_hrs_0.01',
     precip_dfs = 2,
-    po_dfs = 6
+    po_dfs = 4
   )
 )
 
@@ -193,6 +193,10 @@ all_results <- all_results %>%
   grepl('dme_q1', m_name) ~ '1st quartile DME use',
   grepl('dme_q4', m_name) ~ '4th quartile DME use'))
 
+all_results$effect_mod_type <-
+  factor(all_results$effect_mod_type, levels = c("Age", "Sex", "Poverty", "DME"))
+
+
 # plot 
 effect_mod_plot <- 
   all_results %>%
@@ -215,7 +219,7 @@ effect_mod_plot <-
     color = "") + 
   ggtitle(
     paste0("Association between power outage exposure and ",
-           "hospitalizations\nin older adults (age >=65) in ",
+           "hospitalizations\nin older adults (age 65+) in ",
            "fee-for-service Medicare")) +
   labs(subtitle = 'Stratified by potential effect modifiers') +
   theme(
@@ -234,4 +238,15 @@ ggsave(
   height = 15
 )
 
+tables <- all_results %>% 
+  mutate(est = round(est, digits = 3),
+         ci_low = round(ci_low, digits = 3),
+         ci_high = round(ci_high), digits = 3) %>%
+  mutate(est_w_ci = paste0(est, ', [', ci_low, ', ', ci_high, ']')) %>%
+  select(effect_mod_type, cat, lags, outcome_type, est_w_ci) %>%
+  pivot_wider(names_from = lags,
+              values_from = c('est_w_ci'),names_prefix = 'Lag day ',
+              id_cols = c("effect_mod_type", "cat", "outcome_type"))
+
+write_csv(tables, here("figures", "figures_output", "effect_mod_table.csv"))
 

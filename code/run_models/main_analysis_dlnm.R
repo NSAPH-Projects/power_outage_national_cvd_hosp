@@ -27,7 +27,7 @@ cvd_dlnms <- run_dlnm_models(
   exposure_cols = exposure_columns,
   offset_col = 'n_benes',
   precip_dfs = 2,
-  po_dfs = 6
+  po_dfs = 4
 )
 
 resp_dlnms <- run_dlnm_linear_precip(
@@ -78,7 +78,7 @@ dlnm_main_analysis_plot <-
     y = "Rate ratio", 
     color = "Size of power outage:\n X% of county out or more") + 
   ggtitle(paste0("Association between power outage exposure and ",
-  "hospitalizations\nin older adults (age >=65) in fee-for-service Medicare")) +
+  "hospitalizations\nin older adults (age 65+) in fee-for-service Medicare")) +
   theme(
     panel.spacing = unit(1, "lines"),
     panel.border = element_rect(
@@ -99,3 +99,16 @@ ggsave(
   width = 14,
   height = 7
 )
+
+# create table 
+
+tables <- all_results %>% 
+  mutate(est = round(est, digits = 3),
+         ci_low = round(ci_low, digits = 3),
+         ci_high = round(ci_high), digits = 3) %>%
+  mutate(est_w_ci = paste0(est, ', [', ci_low, ', ', ci_high, ']')) %>%
+  select(m_name, lags, outcome_type, est_w_ci) %>%
+  pivot_wider(names_from = lags,
+              values_from = c('est_w_ci'),names_prefix = 'Lag day ')
+
+write_csv(tables, here("figures", "figures_output", "main_results_table.csv"))
