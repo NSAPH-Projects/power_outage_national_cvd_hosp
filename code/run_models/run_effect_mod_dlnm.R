@@ -248,5 +248,6 @@ tables <- all_results %>%
               values_from = c('est_w_ci'),names_prefix = 'Lag day ',
               id_cols = c("effect_mod_type", "cat", "outcome_type"))
 
-write_csv(tables, here("figures", "figures_output", "effect_mod_table.csv"))
+write_csv(tables,
+          here("figures_for_upload", "supplement", "effect_mod_table.csv"))
 

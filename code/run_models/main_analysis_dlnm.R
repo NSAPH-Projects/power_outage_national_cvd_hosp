@@ -111,4 +111,5 @@ tables <- all_results %>%
   pivot_wider(names_from = lags,
               values_from = c('est_w_ci'),names_prefix = 'Lag day ')
 
-write_csv(tables, here("figures", "figures_output", "main_results_table.csv"))
+write_csv(tables,
+          here("figures_for_upload", "supplement", "main_results_table.csv"))

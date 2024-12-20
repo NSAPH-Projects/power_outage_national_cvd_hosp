@@ -10,10 +10,10 @@ pacman::p_load(here, tidyverse, sf, ggthemes, viridis, data.table, patchwork)
 # Read --------------------------------------------------------------------
 
 # medicare
-hosp <- readRDS(here("data", "an_dat_urgent_hosp_nov_5.RDS"))
+hosp <- readRDS(here("data", "an_dat_urgent_hosp_dec_17.RDS"))
 
 # us counties
-us_counties <- readRDS(here("data", "counties_sf.RDS"))
+us_counties <- readRDS(here("data", "cotus_county_shp_w_fips.RDS"))
 
 
 # Plot --------------------------------------------------------------------
@@ -22,18 +22,17 @@ to_plot <- hosp %>%
   group_by(five_digit_fips) %>%
   summarize(
     n_benes = max(n_benes, na.rm = T),
-    n_cvd = sum(n_cvd_no_hem_no_hyp, na.rm = T),
+    n_cvd = sum(n_cvd_no_hyp, na.rm = T),
     n_resp = sum(n_resp, na.rm = T),
     n_po = sum(exposed_8_hrs_0.01, na.rm = T)
   ) %>%
-  mutate(cvd_rate = n_cvd / n_benes * 100000,
-         resp_rate = n_resp / n_benes * 100000)
+  mutate(cvd_rate = n_cvd / n_benes * 10000,
+         resp_rate = n_resp / n_benes * 10000)
 
 to_plot <- us_counties %>%
-  mutate(five_digit_fips = county_fips) %>%
   left_join(to_plot)
 
-to_plot <- to_plot %>% filter(state_abbv != 'HI' & state_abbv != 'AK')
+to_plot <- to_plot %>% filter(state_fips != '15' & state_fips != '02')
 
 p1 <-
   to_plot |>
@@ -43,10 +42,9 @@ p1 <-
   theme_map() +
   ggtitle(
     paste0(
-    "2018 CVD hospitalization rate per 100,000\n",
-    "Medicare part A and B beneficiaries, not\n",
-    "including hemorrhagic stroke or hypertension\n",
-    "hospitalizations"
+    "2018 annual CVD hospitalization rate per 10,000\n",
+    "Medicare fee-for-service beneficiaries, not\n",
+    "including hypertension hospitalizations"
   )) +
   theme(legend.position = 'top')
 
@@ -61,18 +59,14 @@ p2 <-
   to_plot |>
   ggplot() +
   geom_sf(aes(fill = resp_rate), color = NA) +
-  scale_fill_viridis_c(
-    name = "Hospitalization rate",
-    limits = c(0, 1000),
-    oob = scales::squish,
-    labels = c("0", "250", "500", "750", ">=1000")
-  ) +
+  scale_fill_viridis_c(name = "Hospitalization rate") +
   theme_map() +
   ggtitle(
-   paste0("2018 respiratory hospitalization rate\n",
-          "per 100,000 Medicare part A and B\n",
-          "beneficiaries"
-  )) +
+    paste0(
+      "2018 annual respiratory hospitalization rate\n",
+      "per 10,000 Medicare fee-for-service beneficiaries\n"
+    )
+  ) +
   theme(legend.position = 'top')
 
 # ggsave(
@@ -99,7 +93,7 @@ p3 <-
   ) +
   theme_map() +
   ggtitle(
-    "Number of days in 2018 affected by\n8+ hour power outages"
+    "Number of county-days in 2018 affected by\n8+ hour power outages"
   ) +
   theme(legend.position = 'top')
 
