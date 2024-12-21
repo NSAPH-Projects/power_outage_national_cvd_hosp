@@ -10,7 +10,7 @@ pacman::p_load(tidyverse, data.table, here)
 
 
 ```{r}
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_1.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
 
 dme_by_county <-
   read_rds(here(
@@ -33,6 +33,40 @@ an_dat <- an_dat %>%
 ```
 
 ```{r}
+an_dat %>% select(five_digit_fips, n_benes, n_benes_older_75, n_benes_under_75,
+                  n_benes_sex_1, n_benes_sex_2) %>% distinct() %>%
+  summarize(
+    n = sum(n_benes),
+    n_older_75 = sum(n_benes_older_75),
+    n_younger_75 = sum(n_benes_under_75),
+    n_benes_male = sum(n_benes_sex_1),
+    n_benes_female = sum(n_benes_sex_2)) %>%
+    knitr::kable() 
+```
+
+```{r}
+an_dat %>% select(five_digit_fips, n_benes, dme_quartile) %>% distinct() %>% group_by(dme_quartile) %>%
+  summarize(n = sum(n_benes)) %>% knitr::kable()
+
+an_dat %>% select(five_digit_fips, n_benes, pov_quartile) %>% distinct() %>% group_by(pov_quartile) %>%
+  summarize(n = sum(n_benes)) %>% knitr::kable()
+
+```
+
+```{r}
+l <- an_dat %>% 
+  mutate(ws_quartile = ntile(wind_speed, 4),
+         precip_quartile = ntile(precip, 4),
+         temp_quartile = ntile(max_temp, 4)) 
+l %>% select(ws_quartile, n_benes) %>%
+  group_by(ws_quartile) %>%
+  summarize(n = sum(n_benes)/100000000) %>% knitr::kable()
+
+```
+
+
+
+```{r}
 calculate_weighted_exposure_stats <-
   function(data, var, weight_var, is_categorical = FALSE) {
     if (is_categorical) {
@@ -44,7 +78,10 @@ calculate_weighted_exposure_stats <-
         ) %>%
         mutate(variable = var) %>%
         rename(quartile = !!sym(var)) %>%
-        select(variable, quartile, weighted_mean_exposure, median_exposure)
+        select(variable,
+               quartile,
+               weighted_mean_exposure,
+               median_exposure)
     } else {
       data %>%
         mutate(quartile = ntile(!!sym(var), 4)) %>%
@@ -65,29 +102,38 @@ calculate_weighted_exposure_stats <-
 ```
 
 ```{r}
-calculate_weighted_exposure_stats <- function(data, var, weight_var, is_categorical = FALSE) {
-  if (is_categorical) {
-    data %>%
-      group_by(!!sym(var)) %>%
-      summarize(
-        weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
-        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
-      ) %>%
-      mutate(variable = var, weight_name = weight_var) %>%
-      rename(quartile = !!sym(var)) %>%
-      select(variable, quartile, weighted_mean_exposure, median_exposure, weight_name)
-  } else {
-    data %>%
-      mutate(quartile = ntile(!!sym(var), 4)) %>%
-      group_by(quartile) %>%
-      summarize(
-        weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
-        median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
-      ) %>%
-      mutate(variable = var, weight_name = weight_var) %>%
-      select(variable, quartile, weighted_mean_exposure, median_exposure, weight_name)
+calculate_weighted_exposure_stats <-
+  function(data, var, weight_var, is_categorical = FALSE) {
+    if (is_categorical) {
+      data %>%
+        group_by(!!sym(var)) %>%
+        summarize(
+          weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+          median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+        ) %>%
+        mutate(variable = var, weight_name = weight_var) %>%
+        rename(quartile = !!sym(var)) %>%
+        select(variable,
+               quartile,
+               weighted_mean_exposure,
+               median_exposure,
+               weight_name)
+    } else {
+      data %>%
+        mutate(quartile = ntile(!!sym(var), 4)) %>%
+        group_by(quartile) %>%
+        summarize(
+          weighted_mean_exposure = sum(exposed_8_hrs_0.01 * !!sym(weight_var), na.rm = TRUE) / sum(!!sym(weight_var), na.rm = TRUE),
+          median_exposure = median(exposed_8_hrs_0.01, na.rm = TRUE)
+        ) %>%
+        mutate(variable = var, weight_name = weight_var) %>%
+        select(variable,
+               quartile,
+               weighted_mean_exposure,
+               median_exposure,
+               weight_name)
+    }
   }
-}
 ```
 
 

@@ -355,7 +355,7 @@ display: none;
 </div>
 
 
-<pre class="r"><code>an_dat &lt;- read_rds(here(&#39;data&#39;, &#39;an_dat_urgent_hosp_dec_1.RDS&#39;))
+<pre class="r"><code>an_dat &lt;- read_rds(here(&#39;data&#39;, &#39;an_dat_urgent_hosp_dec_17.RDS&#39;))
 
 dme_by_county &lt;-
   read_rds(here(
@@ -442,21 +442,38 @@ categorical_stats &lt;- map_dfr(categorical_vars, ~calculate_weighted_exposure_s
 
 
 under_75 &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_under_75)
-over_75 &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_under_75)
+over_75 &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_older_75)
 female &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_2)
 male &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_1)
 
-names &lt;- 
-  c(&#39;Under 75&#39;,
-    &#39;Over 75&#39;,
-    &#39;Female&#39;,
-    &#39;Male&#39;)
 
+all &lt;- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes)
+
+an_dat &lt;- an_dat %&gt;% 
+  mutate(all_person_days_exposed = exposed_8_hrs_0.01 * n_benes,
+         over_75 = exposed_8_hrs_0.01 * n_benes_older_75,
+         under_75 = exposed_8_hrs_0.01 * n_benes_under_75,
+         female = exposed_8_hrs_0.01 * n_benes_sex_2,
+         male = exposed_8_hrs_0.01 * n_benes_sex_1)
+
+all &lt;- sum(an_dat$all_person_days_exposed)
+o75 &lt;- sum(an_dat$over_75)
+u75 &lt;- sum(an_dat$under_75)
+ff &lt;- sum(an_dat$female)
+mm &lt;- sum(an_dat$male)
 
 
 # Combine all results into a single table
 
 exposure_stats_all &lt;- bind_rows(continuous_stats, categorical_stats)</code></pre>
+<pre class="r"><code>print(over_75)</code></pre>
+<pre><code>## [1] 0.01260442</code></pre>
+<pre class="r"><code>print(under_75)</code></pre>
+<pre><code>## [1] 0.01244138</code></pre>
+<pre class="r"><code>print(female)</code></pre>
+<pre><code>## [1] 0.0124749</code></pre>
+<pre class="r"><code>print(male)</code></pre>
+<pre><code>## [1] 0.01254924</code></pre>
 <pre class="r"><code>print(exposure_stats_all)</code></pre>
 <pre><code>## # A tibble: 20 × 5
 ##    variable     quartile weighted_mean_exposure median_exposure weight_name
@@ -481,6 +498,9 @@ exposure_stats_all &lt;- bind_rows(continuous_stats, categorical_stats)</code></
 ## 18 pov_quartile        2                0.0112                0 n_benes    
 ## 19 pov_quartile        3                0.0139                0 n_benes    
 ## 20 pov_quartile        4                0.0144                0 n_benes</code></pre>
+<pre class="r"><code>print(round(exposure_stats_all$weighted_mean_exposure, digits = 3))</code></pre>
+<pre><code>##  [1] 0.009 0.009 0.010 0.022 0.022 0.012 0.009 0.008 0.013 0.014 0.012 0.011
+## [13] 0.009 0.017 0.019 0.020 0.012 0.011 0.014 0.014</code></pre>
 <pre class="r"><code>calculate_exposure_stats &lt;- function(data, var, is_categorical = FALSE) {
   if (is_categorical) {
     data %&gt;%
@@ -637,84 +657,95 @@ head(an_dat)</code></pre>
 ## 4:                  0            29232      0.6671866 277.4671      0
 ## 5:                  0            29232      0.6671866 280.0549      0
 ## 6:                  0            29232      0.6671866 282.5457      0
-##    wind_speed n_all_cvd n_cvd_no_hem_no_hyp n_resp n_all_cvd_0_age
-## 1:   6.432618         0                   0      0               0
-## 2:   3.454237         0                   0      0               0
-## 3:   3.056036         1                   1      0               0
-## 4:   4.490525         1                   0      0               0
-## 5:   1.997728         1                   0      0               1
-## 6:   2.741479         0                   0      0               0
-##    n_all_cvd_1_age n_cvd_no_hem_no_hyp_0_age n_cvd_no_hem_no_hyp_1_age
-## 1:               0                         0                         0
-## 2:               0                         0                         0
-## 3:               1                         0                         1
-## 4:               1                         0                         0
-## 5:               0                         0                         0
-## 6:               0                         0                         0
-##    n_resp_0_age n_resp_1_age n_all_cvd_1_sex n_all_cvd_2_sex
-## 1:            0            0               0               0
-## 2:            0            0               0               0
-## 3:            0            0               1               0
-## 4:            0            0               0               1
-## 5:            0            0               0               1
-## 6:            0            0               0               0
-##    n_cvd_no_hem_no_hyp_1_sex n_cvd_no_hem_no_hyp_2_sex n_resp_1_sex
-## 1:                         0                         0            0
-## 2:                         0                         0            0
-## 3:                         1                         0            0
-## 4:                         0                         0            0
-## 5:                         0                         0            0
-## 6:                         0                         0            0
-##    n_resp_2_sex n_benes n_benes_older_75 n_benes_under_75 n_benes_sex_1
-## 1:            0    4502             1983             2519          2029
-## 2:            0    4502             1983             2519          2029
-## 3:            0    4502             1983             2519          2029
-## 4:            0    4502             1983             2519          2029
-## 5:            0    4502             1983             2519          2029
-## 6:            0    4502             1983             2519          2029
-##    n_benes_sex_2 day_of_week two_month_period stratum benes_2018 dme_2018
-## 1:          2473           2                1       1       9534      643
-## 2:          2473           3                1       2       9534      643
-## 3:          2473           4                1       3       9534      643
-## 4:          2473           5                1       4       9534      643
-## 5:          2473           6                1       5       9534      643
-## 6:          2473           7                1       6       9534      643
-##         p_dme dme_quartile total_below_pov p_below_pov pov_quartile
-## 1: 0.06744284            3            8340   0.1518517            3
-## 2: 0.06744284            3            8340   0.1518517            3
-## 3: 0.06744284            3            8340   0.1518517            3
-## 4: 0.06744284            3            8340   0.1518517            3
-## 5: 0.06744284            3            8340   0.1518517            3
-## 6: 0.06744284            3            8340   0.1518517            3</code></pre>
+##    wind_speed n_all_cvd n_cvd_no_hyp n_resp n_hyp n_all n_all_cvd_0_age
+## 1:   6.432618         2            2      1     2     2               0
+## 2:   3.454237         2            2      2     2     5               0
+## 3:   3.056036         3            2      2     2     4               0
+## 4:   4.490525         1            0      0     1     1               0
+## 5:   1.997728         1            0      0     1     3               1
+## 6:   2.741479         3            3      2     1     4               1
+##    n_all_cvd_1_age n_cvd_no_hyp_0_age n_cvd_no_hyp_1_age n_resp_0_age
+## 1:               2                  0                  2            0
+## 2:               2                  0                  2            0
+## 3:               3                  0                  2            0
+## 4:               1                  0                  0            0
+## 5:               0                  0                  0            0
+## 6:               2                  1                  2            0
+##    n_resp_1_age n_all_cvd_1_sex n_all_cvd_2_sex n_cvd_no_hyp_1_sex
+## 1:            1               2               0                  2
+## 2:            2               2               0                  2
+## 3:            2               1               2                  1
+## 4:            0               0               1                  0
+## 5:            0               0               1                  0
+## 6:            2               1               2                  1
+##    n_cvd_no_hyp_2_sex n_resp_1_sex n_resp_2_sex n_benes n_benes_older_75
+## 1:                  0            1            0    4502             1983
+## 2:                  0            2            0    4502             1983
+## 3:                  1            1            1    4502             1983
+## 4:                  0            0            0    4502             1983
+## 5:                  0            0            0    4502             1983
+## 6:                  2            1            1    4502             1983
+##    n_benes_under_75 n_benes_sex_1 n_benes_sex_2 day_of_week two_month_period
+## 1:             2519          2029          2473           2                1
+## 2:             2519          2029          2473           3                1
+## 3:             2519          2029          2473           4                1
+## 4:             2519          2029          2473           5                1
+## 5:             2519          2029          2473           6                1
+## 6:             2519          2029          2473           7                1
+##    stratum benes_2018 dme_2018      p_dme dme_quartile total_below_pov
+## 1:       1       9534      643 0.06744284            3            8340
+## 2:       2       9534      643 0.06744284            3            8340
+## 3:       3       9534      643 0.06744284            3            8340
+## 4:       4       9534      643 0.06744284            3            8340
+## 5:       5       9534      643 0.06744284            3            8340
+## 6:       6       9534      643 0.06744284            3            8340
+##    p_below_pov pov_quartile all_person_days_exposed over_75 under_75 female
+## 1:   0.1518517            3                       0       0        0      0
+## 2:   0.1518517            3                       0       0        0      0
+## 3:   0.1518517            3                       0       0        0      0
+## 4:   0.1518517            3                       0       0        0      0
+## 5:   0.1518517            3                       0       0        0      0
+## 6:   0.1518517            3                       0       0        0      0
+##    male
+## 1:    0
+## 2:    0
+## 3:    0
+## 4:    0
+## 5:    0
+## 6:    0</code></pre>
 <pre class="r"><code>colnames(an_dat)</code></pre>
-<pre><code>##  [1] &quot;five_digit_fips&quot;           &quot;day&quot;                      
-##  [3] &quot;exposed_1_hrs_percentile&quot;  &quot;exposed_2_hrs_percentile&quot; 
-##  [5] &quot;exposed_4_hrs_percentile&quot;  &quot;n_hrs_out_0.005&quot;          
-##  [7] &quot;n_hrs_out_0.01&quot;            &quot;n_hrs_out_0.03&quot;           
-##  [9] &quot;n_hrs_out_0.05&quot;            &quot;exposed_8_hrs_0.005&quot;      
-## [11] &quot;exposed_8_hrs_0.01&quot;        &quot;exposed_8_hrs_0.03&quot;       
-## [13] &quot;exposed_8_hrs_0.05&quot;        &quot;exposed_4_hrs_0.005&quot;      
-## [15] &quot;exposed_4_hrs_0.01&quot;        &quot;exposed_4_hrs_0.03&quot;       
-## [17] &quot;exposed_4_hrs_0.05&quot;        &quot;exposed_1_hrs_0.005&quot;      
-## [19] &quot;exposed_1_hrs_0.01&quot;        &quot;exposed_1_hrs_0.03&quot;       
-## [21] &quot;exposed_1_hrs_0.05&quot;        &quot;county_customers&quot;         
-## [23] &quot;percent_served&quot;            &quot;max_temp&quot;                 
-## [25] &quot;precip&quot;                    &quot;wind_speed&quot;               
-## [27] &quot;n_all_cvd&quot;                 &quot;n_cvd_no_hem_no_hyp&quot;      
-## [29] &quot;n_resp&quot;                    &quot;n_all_cvd_0_age&quot;          
-## [31] &quot;n_all_cvd_1_age&quot;           &quot;n_cvd_no_hem_no_hyp_0_age&quot;
-## [33] &quot;n_cvd_no_hem_no_hyp_1_age&quot; &quot;n_resp_0_age&quot;             
-## [35] &quot;n_resp_1_age&quot;              &quot;n_all_cvd_1_sex&quot;          
-## [37] &quot;n_all_cvd_2_sex&quot;           &quot;n_cvd_no_hem_no_hyp_1_sex&quot;
-## [39] &quot;n_cvd_no_hem_no_hyp_2_sex&quot; &quot;n_resp_1_sex&quot;             
-## [41] &quot;n_resp_2_sex&quot;              &quot;n_benes&quot;                  
-## [43] &quot;n_benes_older_75&quot;          &quot;n_benes_under_75&quot;         
-## [45] &quot;n_benes_sex_1&quot;             &quot;n_benes_sex_2&quot;            
-## [47] &quot;day_of_week&quot;               &quot;two_month_period&quot;         
-## [49] &quot;stratum&quot;                   &quot;benes_2018&quot;               
-## [51] &quot;dme_2018&quot;                  &quot;p_dme&quot;                    
-## [53] &quot;dme_quartile&quot;              &quot;total_below_pov&quot;          
-## [55] &quot;p_below_pov&quot;               &quot;pov_quartile&quot;</code></pre>
+<pre><code>##  [1] &quot;five_digit_fips&quot;          &quot;day&quot;                     
+##  [3] &quot;exposed_1_hrs_percentile&quot; &quot;exposed_2_hrs_percentile&quot;
+##  [5] &quot;exposed_4_hrs_percentile&quot; &quot;n_hrs_out_0.005&quot;         
+##  [7] &quot;n_hrs_out_0.01&quot;           &quot;n_hrs_out_0.03&quot;          
+##  [9] &quot;n_hrs_out_0.05&quot;           &quot;exposed_8_hrs_0.005&quot;     
+## [11] &quot;exposed_8_hrs_0.01&quot;       &quot;exposed_8_hrs_0.03&quot;      
+## [13] &quot;exposed_8_hrs_0.05&quot;       &quot;exposed_4_hrs_0.005&quot;     
+## [15] &quot;exposed_4_hrs_0.01&quot;       &quot;exposed_4_hrs_0.03&quot;      
+## [17] &quot;exposed_4_hrs_0.05&quot;       &quot;exposed_1_hrs_0.005&quot;     
+## [19] &quot;exposed_1_hrs_0.01&quot;       &quot;exposed_1_hrs_0.03&quot;      
+## [21] &quot;exposed_1_hrs_0.05&quot;       &quot;county_customers&quot;        
+## [23] &quot;percent_served&quot;           &quot;max_temp&quot;                
+## [25] &quot;precip&quot;                   &quot;wind_speed&quot;              
+## [27] &quot;n_all_cvd&quot;                &quot;n_cvd_no_hyp&quot;            
+## [29] &quot;n_resp&quot;                   &quot;n_hyp&quot;                   
+## [31] &quot;n_all&quot;                    &quot;n_all_cvd_0_age&quot;         
+## [33] &quot;n_all_cvd_1_age&quot;          &quot;n_cvd_no_hyp_0_age&quot;      
+## [35] &quot;n_cvd_no_hyp_1_age&quot;       &quot;n_resp_0_age&quot;            
+## [37] &quot;n_resp_1_age&quot;             &quot;n_all_cvd_1_sex&quot;         
+## [39] &quot;n_all_cvd_2_sex&quot;          &quot;n_cvd_no_hyp_1_sex&quot;      
+## [41] &quot;n_cvd_no_hyp_2_sex&quot;       &quot;n_resp_1_sex&quot;            
+## [43] &quot;n_resp_2_sex&quot;             &quot;n_benes&quot;                 
+## [45] &quot;n_benes_older_75&quot;         &quot;n_benes_under_75&quot;        
+## [47] &quot;n_benes_sex_1&quot;            &quot;n_benes_sex_2&quot;           
+## [49] &quot;day_of_week&quot;              &quot;two_month_period&quot;        
+## [51] &quot;stratum&quot;                  &quot;benes_2018&quot;              
+## [53] &quot;dme_2018&quot;                 &quot;p_dme&quot;                   
+## [55] &quot;dme_quartile&quot;             &quot;total_below_pov&quot;         
+## [57] &quot;p_below_pov&quot;              &quot;pov_quartile&quot;            
+## [59] &quot;all_person_days_exposed&quot;  &quot;over_75&quot;                 
+## [61] &quot;under_75&quot;                 &quot;female&quot;                  
+## [63] &quot;male&quot;</code></pre>
 <pre class="r"><code>find_quartiles &lt;- function(x) {
   # calculate the quartile boundaries
   quartiles &lt;- quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)

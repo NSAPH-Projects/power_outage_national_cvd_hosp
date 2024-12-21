@@ -1,4 +1,4 @@
-# Do main analysis with constrained lag terms 
+# Do sensitivity analysis on duration
 
 # Libraries ---------------------------------------------------------------
 
@@ -14,72 +14,76 @@ an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
 
 # Models ------------------------------------------------------------------
 
-# want to do cvd and respiratory for all lags and all cut points but not for 
-# durations 
+# want to do cvd and respiratory for all lags and durations but not for 
+# cut points 
 exposure_columns <-
-  c('exposed_8_hrs_0.01')
-    #'exposed_8_hrs_0.03',
-    #'exposed_8_hrs_0.05')
+  c('exposed_4_hrs_0.01',
+    'exposed_8_hrs_0.01',
+    'exposed_1_hrs_0.01')
 
 cvd_dlnms <- run_dlnm_models(
-  po_data = an_dat,
-  outcome_col = 'n_all_cvd',
-  exposure_cols = exposure_columns,
-  offset_col = 'n_benes',
-  precip_dfs = 2,
-  po_dfs = 4)
-
-cvd_no_hyp_dlnms <- run_dlnm_models(
   po_data = an_dat,
   outcome_col = 'n_cvd_no_hyp',
   exposure_cols = exposure_columns,
   offset_col = 'n_benes',
   precip_dfs = 2,
-  po_dfs = 4)
+  po_dfs = 4
+)
 
+resp_dlnms <- run_dlnm_linear_precip(
+  po_data = an_dat,
+  outcome_col = 'n_resp',
+  exposure_cols = exposure_columns,
+  offset_col = 'n_benes',
+  po_dfs = 3
+)
 
 # extract results 
-all_cvd_dlnm_preds <- rbindlist(get_dlnm_pred(cvd_dlnms))
-cvd_no_hyp_dlnm_preds <- rbindlist(get_dlnm_pred(cvd_no_hyp_dlnms))
+cvd_dlnm_preds <- rbindlist(get_dlnm_pred(cvd_dlnms))
+resp_dlnm_preds <- rbindlist(get_dlnm_pred(resp_dlnms))
 
 # add outcome type labels
-all_cvd_dlnm_preds <- all_cvd_dlnm_preds %>%
-  mutate(outcome_type = 'All CVD-related hosp')
-cvd_no_hyp_dlnm_preds <- cvd_no_hyp_dlnm_preds %>%
-  mutate(outcome_type = 'Cardiovascular-related hosp,\nexcluding hypertension')
+cvd_dlnm_preds <- cvd_dlnm_preds %>%
+  mutate(outcome_type = 'Cardiovascular-related hosp, excluding hypertension')
+resp_dlnm_preds <- resp_dlnm_preds %>%
+  mutate(outcome_type = 'Respiratory-related hosp')
 
 # combine results
-all_results <- rbindlist(list(all_cvd_dlnm_preds, cvd_no_hyp_dlnm_preds))
+all_results <- rbindlist(list(cvd_dlnm_preds, resp_dlnm_preds))
 
 # rename m_name values
 all_results <- all_results %>% 
   mutate(m_name = recode(m_name, 
-                         'exposed_8_hrs_0.01' = '1%'))
-                        # 'exposed_8_hrs_0.03' = '3%',
-                        # 'exposed_8_hrs_0.05' = '5%'))
+                         'exposed_4_hrs_0.01' = '4+ hour outage',
+                         'exposed_8_hrs_0.01' = '8+ hour outage',
+                         'exposed_1_hrs_0.01' = '12+ hour outage'))
+
+all_results$m_name <-
+  factor(all_results$m_name,
+         levels = c('4+ hour outage', '8+ hour outage', '12+ hour outage'))
+
 # plot 
-dlnm_hyp_analysis_plot <- 
+dlnm_main_analysis_plot <- 
   all_results %>%
   ggplot() +
   geom_hline(aes(yintercept = 1)) +
   geom_point(
     size = 3.5, 
-    aes(x = lags, y = est, color = outcome_type),
+    aes(x = lags, y = est, color = m_name),
     position = position_dodge(width = 0.5)) +
   geom_errorbar(
     width = 0.5,
     size = 1,
     position = position_dodge(width = 0.5),
-    aes(x = lags, ymin = ci_low, ymax = ci_high, color = outcome_type)) +
- # facet_grid( ~ outcome_type) +
+    aes(x = lags, ymin = ci_low, ymax = ci_high, color = m_name)) +
+  facet_grid( ~ outcome_type) +
   theme_minimal(base_size = 15) +
   labs(
     x = "Lag (days)", 
     y = "Rate ratio", 
-    color = "Outcome type") + 
+    color = "Duration of power outage:\n X hrs or more") + 
   ggtitle(paste0("Association between power outage exposure and ",
-                 "CVD hospitalizations\nin older adults (age 65+) in fee-for-service Medicare",
-                 "\nwith and without hypertension-related hospitalizations")) +
+  "hospitalizations\nin older adults (age 65+) in fee-for-service Medicare")) +
   theme(
     panel.spacing = unit(1, "lines"),
     panel.border = element_rect(
@@ -92,15 +96,17 @@ dlnm_hyp_analysis_plot <-
 
 
 ggsave(
-  dlnm_hyp_analysis_plot,
+  dlnm_main_analysis_plot,
   filename = here(
     'figures_for_upload',
     'supplement',
-    'hyp_sens_analysis_dlnm_dec_17.pdf'
+    'duration_sensitivity_analysis_dlnm_dec_17.pdf'
   ),
-  width = 10,
+  width = 14,
   height = 7
 )
+
+# create table 
 
 tables <- all_results %>% 
   mutate(est = round(est, digits = 3),
@@ -116,8 +122,6 @@ write_csv(
   here(
     "figures_for_upload",
     "supplement",
-    "hyp_sens_results_table.csv"
+    "duration_sens_results_table.csv"
   )
 )
-
-
