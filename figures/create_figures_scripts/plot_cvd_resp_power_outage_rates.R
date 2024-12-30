@@ -22,7 +22,7 @@ to_plot <- hosp %>%
   group_by(five_digit_fips) %>%
   summarize(
     n_benes = max(n_benes, na.rm = T),
-    n_cvd = sum(n_cvd_no_hyp, na.rm = T),
+    n_cvd = sum(n_all_cvd, na.rm = T),
     n_resp = sum(n_resp, na.rm = T),
     n_po = sum(exposed_8_hrs_0.01, na.rm = T)
   ) %>%
@@ -43,10 +43,11 @@ p1 <-
   ggtitle(
     paste0(
     "2018 annual CVD hospitalization rate per 10,000\n",
-    "Medicare fee-for-service beneficiaries, not\n",
-    "including hypertension hospitalizations"
+    "Medicare fee-for-service beneficiaries"
   )) +
-  theme(legend.position = 'top')
+  theme(legend.position = 'top',
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 13)) 
 
 # ggsave(
 #   plot = p1,
@@ -67,7 +68,9 @@ p2 <-
       "per 10,000 Medicare fee-for-service beneficiaries\n"
     )
   ) +
-  theme(legend.position = 'top')
+  theme(legend.position = 'top',
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 13)) 
 
 # ggsave(
 #   plot = p2,
@@ -89,13 +92,15 @@ p3 <-
     name = "Number of days affected\nby 8+ hour power outage",
     limits = c(0, 100),
     oob = scales::squish,
-    labels = c("0", '25', '50', '75', ">=100")
+    labels = c("0", '25', '50', '75', "≥100")
   ) +
   theme_map() +
   ggtitle(
     "Number of county-days in 2018 affected by\n8+ hour power outages"
   ) +
-  theme(legend.position = 'top')
+  theme(legend.position = 'top',
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 13)) 
 
 # ggsave(
 #   plot = p3,
@@ -120,3 +125,4 @@ ggsave(plot = combined_plot,
   width = 21,
   height = 21
 )
+

@@ -40,14 +40,14 @@ q4_dme <- an_dat %>% filter(dme_quartile == 4)
 effect_mod_models_cvd <- list(
   cvd_75_over = run_dlnm_po_model_copilot(
     po_data = an_dat,
-    outcome_col = 'n_cvd_no_hyp_1_age',
+    outcome_col = 'n_all_cvd_1_age',
     exposure_col = 'exposed_8_hrs_0.01',
     offset_col = 'n_benes_older_75',
     precip_dfs = 2,
     po_dfs = 4
   ),
   cvd_less_75 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp_0_age',
+    outcome_col = 'n_all_cvd_0_age',
     offset_col = 'n_benes_under_75',
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -55,7 +55,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_male_benes = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp_1_sex',
+    outcome_col = 'n_all_cvd_1_sex',
     offset_col = 'n_benes_sex_1',
     po_data = an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -63,7 +63,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_female_benes = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp_2_sex',
+    outcome_col = 'n_all_cvd_2_sex',
     offset_col = 'n_benes_sex_2',
     an_dat,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -71,7 +71,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_pov_q1 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp',
+    outcome_col = 'n_all_cvd',
     offset_col = 'n_benes',
     q1_pov,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -79,7 +79,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_pov_q4 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp',
+    outcome_col = 'n_all_cvd',
     offset_col = 'n_benes',
     q4_pov,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -87,7 +87,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_dme_q1 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp',
+    outcome_col = 'n_all_cvd',
     offset_col = 'n_benes',
     q1_dme,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -95,7 +95,7 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   ),
   cvd_dme_q4 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_cvd_no_hyp',
+    outcome_col = 'n_all_cvd',
     offset_col = 'n_benes',
     q4_dme,
     exposure_col = 'exposed_8_hrs_0.01',
@@ -167,7 +167,7 @@ cvd_effect_mod_dlnm_preds <- rbindlist(get_dlnm_pred(effect_mod_models_cvd))
 resp_effect_mod_dlnm_preds <- rbindlist(get_dlnm_pred(effect_mod_models_resp))
 
 cvd_effect_mod_dlnm_preds <- cvd_effect_mod_dlnm_preds %>%
-  mutate(outcome_type = 'Cardiovascular-related hosp,\nexcluding hypertension')
+  mutate(outcome_type = 'Cardiovascular-related hosp')
 resp_effect_mod_dlnm_preds <- resp_effect_mod_dlnm_preds %>%
   mutate(outcome_type = 'Respiratory-related hosp')
 
@@ -229,7 +229,8 @@ effect_mod_plot <-
       fill = NA,
       size = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
+  theme(strip.text = element_text(size = 23))
 
 ggsave(
   effect_mod_plot,
@@ -241,7 +242,7 @@ ggsave(
 tables <- all_results %>% 
   mutate(est = round(est, digits = 3),
          ci_low = round(ci_low, digits = 3),
-         ci_high = round(ci_high), digits = 3) %>%
+         ci_high = round(ci_high, digits = 3)) %>%
   mutate(est_w_ci = paste0(est, ', [', ci_low, ', ', ci_high, ']')) %>%
   select(effect_mod_type, cat, lags, outcome_type, est_w_ci) %>%
   pivot_wider(names_from = lags,

@@ -23,7 +23,7 @@ exposure_columns <-
 
 cvd_dlnms <- run_dlnm_models(
   po_data = an_dat,
-  outcome_col = 'n_cvd_no_hyp',
+  outcome_col = 'n_all_cvd',
   exposure_cols = exposure_columns,
   offset_col = 'n_benes',
   precip_dfs = 2,
@@ -44,7 +44,7 @@ resp_dlnm_preds <- rbindlist(get_dlnm_pred(resp_dlnms))
 
 # add outcome type labels
 cvd_dlnm_preds <- cvd_dlnm_preds %>%
-  mutate(outcome_type = 'Cardiovascular-related hosp, excluding hypertension')
+  mutate(outcome_type = 'Cardiovascular-related hosp')
 resp_dlnm_preds <- resp_dlnm_preds %>%
   mutate(outcome_type = 'Respiratory-related hosp')
 
@@ -72,7 +72,7 @@ dlnm_main_analysis_plot <-
     position = position_dodge(width = 0.5),
     aes(x = lags, ymin = ci_low, ymax = ci_high, color = m_name)) +
   facet_grid( ~ outcome_type) +
-  theme_minimal(base_size = 15) +
+  theme_minimal(base_size = 17) +
   labs(
     x = "Lag (days)", 
     y = "Rate ratio", 
@@ -87,14 +87,15 @@ dlnm_main_analysis_plot <-
       size = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  scale_color_brewer(palette = "Set1")
+  scale_color_brewer(palette = "Set1") +
+  theme(strip.text = element_text(size = 17))
 
 
 ggsave(
   dlnm_main_analysis_plot,
   filename = here(
     'figures_for_upload',
-    'main_analysis_dlnm_dec_17.pdf'
+    'main_analysis_dlnm_dec_29.pdf'
   ),
   width = 14,
   height = 7
@@ -105,7 +106,7 @@ ggsave(
 tables <- all_results %>% 
   mutate(est = round(est, digits = 3),
          ci_low = round(ci_low, digits = 3),
-         ci_high = round(ci_high), digits = 3) %>%
+         ci_high = round(ci_high, digits = 3)) %>%
   mutate(est_w_ci = paste0(est, ', [', ci_low, ', ', ci_high, ']')) %>%
   select(m_name, lags, outcome_type, est_w_ci) %>%
   pivot_wider(names_from = lags,

@@ -42,7 +42,7 @@ power_outage_crossbasis_linear_lag_3_df <- crossbasis(
 # Run ---------------------------------------------------------------------
 
 model_linear_lag_df_4_cvd <- gnm(
-  n_cvd_no_hyp ~ 
+  n_all_cvd ~ 
     power_outage_crossbasis_linear_lag_4_df +
     temp_crossbasis_ns +
     ns(precip, df = 2) +
@@ -141,9 +141,10 @@ on CVD hospitalization risk among Mediare fee-for-service
 beneficiaries",
        x = "N hours without power within 24-hr period (day)",
        y = "Rate ratio") +
-  theme_minimal(base_size = 15) +
-  theme(panel.border = element_rect(color = "black", fill = NA)) +
-  scale_x_continuous(limits = c(0, 24), breaks = seq(0, 24, by = 4))
+  theme_minimal(base_size = 20) +
+  theme(panel.border = element_rect(color = "black", fill = NA),
+        axis.ticks = element_line(color = "black")) +
+  scale_x_continuous(limits = c(0, 24), breaks = seq(0, 24, by = 6))
 
 ggsave(
   cvd,
@@ -183,9 +184,10 @@ on respiratory hospitalization risk among Mediare fee-for-service
 beneficiaries",
        x = "N hours without power within 24-hr period (day)",
        y = "Rate ratio") +
-  theme_minimal(base_size = 15) +
-  theme(panel.border = element_rect(color = "black", fill = NA)) +
-  scale_x_continuous(limits = c(0, 24), breaks = seq(0, 24, by = 4))
+  theme_minimal(base_size = 20) +
+  theme(panel.border = element_rect(color = "black", fill = NA),
+        axis.ticks = element_line(color = "black")) +
+  scale_x_continuous(limits = c(0, 24), breaks = seq(0, 24, by = 6))
 
 
 ggsave(
