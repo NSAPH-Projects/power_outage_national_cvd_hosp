@@ -1,7 +1,10 @@
 # power_outage_national_cvd_hosp progress notes 
 
-December 5th:
+December 28th:
+Next steps are to redo analyses with hypertension and to get figures looking nice. 
+Then do edits to the mani, and citations, and send to Joan. 
 
+Then submit to PNAS. 
 
 December 4th, 2024:
 
