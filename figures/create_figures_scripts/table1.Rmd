@@ -146,7 +146,7 @@ calculate_weighted_exposure_stats <-
 continuous_vars <- c("wind_speed", "max_temp", "precip")
 
 # List of categorical variables to calculate stats for
-categorical_vars <- c("dme_quartile", "pov_quartile")
+categorical_vars <- c("dme_quartile")
 
 # Remove rows with NA values
 an_dat <- an_dat %>% drop_na()
@@ -162,6 +162,9 @@ under_75 <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_under_75
 over_75 <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_older_75)
 female <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_2)
 male <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_sex_1)
+medicaid <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_medicaid_eligible)
+no_medicaid <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes_non_eligible)
+
 
 
 all <- weighted.mean(an_dat$exposed_8_hrs_0.01, w = an_dat$n_benes)
@@ -171,13 +174,17 @@ an_dat <- an_dat %>%
          over_75 = exposed_8_hrs_0.01 * n_benes_older_75,
          under_75 = exposed_8_hrs_0.01 * n_benes_under_75,
          female = exposed_8_hrs_0.01 * n_benes_sex_2,
-         male = exposed_8_hrs_0.01 * n_benes_sex_1)
+         male = exposed_8_hrs_0.01 * n_benes_sex_1,
+         medicaid = exposed_8_hrs_0.01 * n_benes_medicaid_eligible,
+         no_medicaid = exposed_8_hrs_0.01 * n_benes_non_eligible)
 
 all <- sum(an_dat$all_person_days_exposed)
 o75 <- sum(an_dat$over_75)
 u75 <- sum(an_dat$under_75)
 ff <- sum(an_dat$female)
 mm <- sum(an_dat$male)
+medicaid <- sum(an_dat$medicaid)
+no_medicaid <- sum(an_dat$no_medicaid)
 
 
 # Combine all results into a single table
@@ -187,9 +194,11 @@ exposure_stats_all <- bind_rows(continuous_stats, categorical_stats)
 
 ```{r}
 print(over_75)
-print(under_75)
-print(female)
-print(male)
+print(u75)
+print(ff)
+print(mm)
+print(medicaid)
+print(no_medicaid)
 ```
 
 ```{r}
