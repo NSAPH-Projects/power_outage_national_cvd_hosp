@@ -37,12 +37,20 @@ hosp_2018 <-
   as.data.table()
 
 # sample for checking code 
-# hosp_2018 <- hosp_2018[sample(.N, 10000)]
+#hosp_2018 <- hosp_2018[sample(.N, 10000)]
 
+# other info
 icd_codes <- readRDS(here("data", "all_icd_codes.RDS"))
+xwalk <- read_csv(here("data", 'zip2countyxwalk.csv')) %>%
+  filter(year == 2018) %>%
+  select(zip, corrected_county = county)
 
 # join metadata to hospitalizations that did occur in 2018
 hosp_info <- merge(hosp_2018, benes_2018, by = "bene_id", all.x = TRUE)
+
+# make county the xwalked version of county
+hosp_info <- merge(hosp_info, xwalk, by = 'zip', all.x = T)
+hosp_info[, county := corrected_county]
 
 # Pull ICD codes ----------------------------------------------------------
 
@@ -153,6 +161,28 @@ urg_hosp_by_age <-
 setnames(urg_hosp_by_age, old = names(urg_hosp_by_age)[-(1:3)], 
          new = paste0(names(urg_hosp_by_age)[-(1:3)], "_age"))
 
+urg_hosp_by_medicaid <- urgent_hosp_by_day_by_county[, .(
+  n_all_cvd = sum(contains_any_cvd_code),
+  n_cvd_no_hyp = sum(contains_cvd_no_hyp),
+  n_resp = sum(contains_resp_code)
+),
+by = .(admission_date, county, state, dual)]
+
+urg_hosp_by_medicaid <-
+  dcast(
+    urg_hosp_by_medicaid,
+    admission_date + county + state ~ dual,
+    value.var = c(
+      "n_all_cvd",
+      "n_cvd_no_hyp",
+      "n_resp"
+    )
+  )
+
+# change names to reflect that these are counts by sex 
+setnames(urg_hosp_by_medicaid, old = names(urg_hosp_by_medicaid)[-(1:3)], 
+         new = paste0(names(urg_hosp_by_medicaid)[-(1:3)], "_medicaid"))
+
 # summarize total hospitalizations 
 urgent_hosp_by_day_by_county <- urgent_hosp_by_day_by_county[, .(
   n_all_cvd = sum(contains_any_cvd_code),
@@ -167,7 +197,8 @@ urgent_hosp_by_day_by_county <- urgent_hosp_by_day_by_county[, .(
 urgent_hosp_by_day_by_county <- 
   urgent_hosp_by_day_by_county %>%
   left_join(urg_hosp_by_age) %>% 
-  left_join(urg_hosp_by_sex)
+  left_join(urg_hosp_by_sex) %>%
+  left_join(urg_hosp_by_medicaid)
 
 urgent_hosp_by_day_by_county <-
   urgent_hosp_by_day_by_county[county %chin% panel_fips$five_digit_fips]
@@ -178,13 +209,14 @@ write_rds(
   urgent_hosp_by_day_by_county,
   here(
     "data",
-    "urg_and_emerg_num_hosp_by_day_by_county_inc_state_dec_13.RDS"
+    "urg_and_emerg_num_hosp_by_day_by_county_inc_state_jan_28.RDS"
   )
 )
 
 # write denom, for secondary analyses also
 benes_2018[, age_group := ifelse(age_dob >= 75, "older_75", "under_75")]
 benes_2018[, sex_group := ifelse(sex == '1', "sex_1", "sex_2")]
+benes_2018[, medicaid_group := ifelse(dual == 1, "medicaid_eligible", "non_eligible")]
 
 benes_2018 <- benes_2018[county %chin% panel_fips$five_digit_fips]
 
@@ -194,8 +226,10 @@ benes_summary <- benes_2018[, .(
   n_benes_older_75 = sum(age_group == "older_75"),
   n_benes_under_75 = sum(age_group == "under_75"),
   n_benes_sex_1 = sum(sex_group == "sex_1"),
-  n_benes_sex_2 = sum(sex_group == "sex_2")
+  n_benes_sex_2 = sum(sex_group == "sex_2"),
+  n_benes_medicaid_eligible = sum(medicaid_group == "medicaid_eligible"),
+  n_benes_non_eligible = sum(medicaid_group == 'non_eligible')
 ), by = .(county, state)]
 
-write_rds(benes_summary, here('data', 'benes_by_county_fips_dec_1.RDS'))
+write_rds(benes_summary, here('data', 'benes_by_county_fips_jan_28.RDS'))
 

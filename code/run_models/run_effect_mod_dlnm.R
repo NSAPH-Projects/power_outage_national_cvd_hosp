@@ -9,7 +9,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_jan_28.RDS'))
 
 dme_by_county <-
   read_rds(here(
@@ -18,19 +18,19 @@ dme_by_county <-
     "dme_use_by_county.RDS"
   ))
 
-pov_by_county <-
-  read_rds(here(
-    "data_for_upload",
-    "effect_mod_data",
-    "pov_measures.RDS"
-  ))
+# pov_by_county <-
+#   read_rds(here(
+#     "data_for_upload",
+#     "effect_mod_data",
+#     "pov_measures.RDS"
+#   ))
 
 an_dat <- an_dat %>%
-  left_join(dme_by_county) %>%
-  left_join(pov_by_county)
+  left_join(dme_by_county)# %>%
+ # left_join(pov_by_county)
 
-q1_pov <- an_dat %>% filter(pov_quartile == 1)
-q4_pov <- an_dat %>% filter(pov_quartile == 4)
+# q1_pov <- an_dat %>% filter(pov_quartile == 1)
+# q4_pov <- an_dat %>% filter(pov_quartile == 4)
 
 q1_dme <- an_dat %>% filter(dme_quartile == 1)
 q4_dme <- an_dat %>% filter(dme_quartile == 4)
@@ -70,22 +70,22 @@ effect_mod_models_cvd <- list(
     precip_dfs = 2,
     po_dfs = 4
   ),
-  cvd_pov_q1 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_all_cvd',
-    offset_col = 'n_benes',
-    q1_pov,
-    exposure_col = 'exposed_8_hrs_0.01',
-    precip_dfs = 2,
-    po_dfs = 4
-  ),
-  cvd_pov_q4 = run_dlnm_po_model_copilot(
-    outcome_col = 'n_all_cvd',
-    offset_col = 'n_benes',
-    q4_pov,
-    exposure_col = 'exposed_8_hrs_0.01',
-    precip_dfs = 2,
-    po_dfs = 4
-  ),
+  # cvd_pov_q1 = run_dlnm_po_model_copilot(
+  #   outcome_col = 'n_all_cvd',
+  #   offset_col = 'n_benes',
+  #   q1_pov,
+  #   exposure_col = 'exposed_8_hrs_0.01',
+  #   precip_dfs = 2,
+  #   po_dfs = 4
+  # ),
+  # cvd_pov_q4 = run_dlnm_po_model_copilot(
+  #   outcome_col = 'n_all_cvd',
+  #   offset_col = 'n_benes',
+  #   q4_pov,
+  #   exposure_col = 'exposed_8_hrs_0.01',
+  #   precip_dfs = 2,
+  #   po_dfs = 4
+  # ),
   cvd_dme_q1 = run_dlnm_po_model_copilot(
     outcome_col = 'n_all_cvd',
     offset_col = 'n_benes',
@@ -103,6 +103,32 @@ effect_mod_models_cvd <- list(
     po_dfs = 4
   )
 )
+
+an_dat_medicaid <- an_dat %>%
+  filter(n_benes_medicaid_eligible > 0 &
+           n_benes_non_eligible > 0)
+
+effect_mod_models_cvd_medicaid <- list(
+  cvd_medicaid_benes = run_dlnm_po_model_copilot(
+    outcome_col = 'n_all_cvd_1_medicaid',
+    offset_col = 'n_benes_medicaid_eligible',
+    an_dat_medicaid,
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 4
+  ),
+  cvd_no_medicaid_benes = run_dlnm_po_model_copilot(
+    outcome_col = 'n_all_cvd_0_medicaid',
+    offset_col = 'n_benes_non_eligible',
+    an_dat_medicaid,
+    exposure_col = 'exposed_8_hrs_0.01',
+    precip_dfs = 2,
+    po_dfs = 4
+  )
+)
+
+effect_mod_models_cvd <- 
+  c(effect_mod_models_cvd, effect_mod_models_cvd_medicaid)
 
 effect_mod_models_resp = list(
   resp_75_over = run_dlnm_po_model_linear_precip(
@@ -133,20 +159,20 @@ effect_mod_models_resp = list(
     exposure_col = 'exposed_8_hrs_0.01',
     po_dfs = 3
   ),
-  resp_pov_q1 = run_dlnm_po_model_linear_precip(
-    outcome_col = 'n_resp',
-    offset_col = 'n_benes',
-    q1_pov,
-    exposure_col = 'exposed_8_hrs_0.01',
-    po_dfs = 3
-  ),
-  resp_pov_q4 = run_dlnm_po_model_linear_precip(
-    outcome_col = 'n_resp',
-    offset_col = 'n_benes',
-    q4_pov,
-    exposure_col = 'exposed_8_hrs_0.01',
-    po_dfs = 3
-  ),
+  # resp_pov_q1 = run_dlnm_po_model_linear_precip(
+  #   outcome_col = 'n_resp',
+  #   offset_col = 'n_benes',
+  #   q1_pov,
+  #   exposure_col = 'exposed_8_hrs_0.01',
+  #   po_dfs = 3
+  # ),
+  # resp_pov_q4 = run_dlnm_po_model_linear_precip(
+  #   outcome_col = 'n_resp',
+  #   offset_col = 'n_benes',
+  #   q4_pov,
+  #   exposure_col = 'exposed_8_hrs_0.01',
+  #   po_dfs = 3
+  # ),
   resp_dme_q1 = run_dlnm_po_model_linear_precip(
     outcome_col = 'n_resp',
     offset_col = 'n_benes',
@@ -162,6 +188,26 @@ effect_mod_models_resp = list(
     po_dfs = 3
   )
 )
+
+effect_mod_models_resp_medicaid <- list(
+  resp_medicaid_benes = run_dlnm_po_model_linear_precip(
+    outcome_col = 'n_resp_1_medicaid',
+    offset_col = 'n_benes_medicaid_eligible',
+    an_dat_medicaid,
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
+  ),
+  resp_no_medicaid_benes = run_dlnm_po_model_linear_precip(
+    outcome_col = 'n_resp_0_medicaid',
+    offset_col = 'n_benes_non_eligible',
+    an_dat_medicaid,
+    exposure_col = 'exposed_8_hrs_0.01',
+    po_dfs = 3
+  )
+)
+
+effect_mod_models_resp <- c(effect_mod_models_resp,
+                            effect_mod_models_resp_medicaid)
 
 cvd_effect_mod_dlnm_preds <- rbindlist(get_dlnm_pred(effect_mod_models_cvd))
 resp_effect_mod_dlnm_preds <- rbindlist(get_dlnm_pred(effect_mod_models_resp))
@@ -181,20 +227,20 @@ all_results <- all_results %>%
     grepl('75', m_name) ~ 'Age',
     grepl('male', m_name) ~ 'Sex',
     grepl('dme', m_name) ~ 'DME',
-    grepl('pov', m_name) ~ 'Poverty'
+    grepl('medicaid', m_name) ~ 'Medicaid'
   )) %>% 
   mutate(cat = case_when(
   grepl('75_over', m_name) ~ '75 and over',
   grepl('less_75', m_name) ~ 'Age 65 - 75',
   grepl('female_benes', m_name) ~ 'Female',
   grepl('male_benes', m_name) ~ 'Male',
-  grepl('pov_q1', m_name) ~ '1st quartile poverty',
-  grepl('pov_q4', m_name) ~ '4th quartile poverty',
+  grepl('no_medicaid', m_name) ~ 'No Medicaid',
+  grepl('medicaid', m_name) ~ 'Medicaid',
   grepl('dme_q1', m_name) ~ '1st quartile DME use',
   grepl('dme_q4', m_name) ~ '4th quartile DME use'))
 
 all_results$effect_mod_type <-
-  factor(all_results$effect_mod_type, levels = c("Age", "Sex", "Poverty", "DME"))
+  factor(all_results$effect_mod_type, levels = c("Age", "Sex", "Medicaid", "DME"))
 
 
 # plot 
@@ -234,7 +280,7 @@ effect_mod_plot <-
 
 ggsave(
   effect_mod_plot,
-  filename = here('figures_for_upload', 'effect_mod_dlnm_dec_17.pdf'),
+  filename = here('figures_for_upload', 'effect_mod_dlnm_jan_28.pdf'),
   width = 17,
   height = 15
 )

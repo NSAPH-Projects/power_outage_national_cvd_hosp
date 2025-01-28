@@ -65,3 +65,28 @@ if (file.exists(link_name_hosp)) {
     cat("Failed to create symbolic link.\n")
   }
 }
+
+
+# zip to county xwalk
+target_file_xwalk <-
+  paste0(
+    "/n/dominici_nsaph_l3/Lab/exposure/zip2county_master_xwalk/",
+    "zip2county_master_xwalk_2010_2023_tot_ratio_one2one.csv"
+  )
+link_name_xwalk <-
+  here("data", "zip2countyxwalk.csv")
+
+# verify the symlinks
+if (file.exists(link_name_xwalk)) {
+  cat("Symbolic link created successfully.\n")
+} else {
+  # Create the symbolic link
+  file.symlink(from = target_file_xwalk, to = link_name_xwalk)
+  
+  if (file.exists(link_name_xwalk)) {
+    cat("Symbolic link created successfully.\n")
+  }
+  else {
+    cat("Failed to create symbolic link.\n")
+  }
+}

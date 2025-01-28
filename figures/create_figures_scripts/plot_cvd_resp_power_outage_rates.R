@@ -10,7 +10,7 @@ pacman::p_load(here, tidyverse, sf, ggthemes, viridis, data.table, patchwork)
 # Read --------------------------------------------------------------------
 
 # medicare
-hosp <- readRDS(here("data", "an_dat_urgent_hosp_dec_17.RDS"))
+hosp <- readRDS(here("data", "an_dat_urgent_hosp_jan_28.RDS"))
 
 # us counties
 us_counties <- readRDS(here("data", "cotus_county_shp_w_fips.RDS"))
@@ -43,7 +43,7 @@ p1 <-
   ggtitle(
     paste0(
     "2018 annual CVD hospitalization rate per 10,000\n",
-    "Medicare fee-for-service beneficiaries"
+    "Medicare Fee-For-Service beneficiaries"
   )) +
   theme(legend.position = 'top',
         legend.text = element_text(size = 13),
@@ -65,7 +65,7 @@ p2 <-
   ggtitle(
     paste0(
       "2018 annual respiratory hospitalization rate\n",
-      "per 10,000 Medicare fee-for-service beneficiaries\n"
+      "per 10,000 Medicare Fee-For-Service beneficiaries\n"
     )
   ) +
   theme(legend.position = 'top',
@@ -84,15 +84,27 @@ p2 <-
 # )
 
 
+to_plot <- to_plot %>%
+  mutate(n_po_cat = cut(
+    n_po,
+    breaks = c(-Inf, 5, 15, 30, 50, Inf),
+    labels = c("0-5", "6-15", "16-30", "31-50", "51+")
+  ))
+
+grey_color <- "#999999"  #grey color
+
 p3 <-
   to_plot |>
   ggplot() +
-  geom_sf(aes(fill = n_po), color = NA) +
-  scale_fill_viridis_c(
-    name = "Number of days affected\nby 8+ hour power outage",
-    limits = c(0, 100),
-    oob = scales::squish,
-    labels = c("0", '25', '50', '75', "≥100")
+  geom_sf(aes(fill = n_po_cat), color = NA) +
+  scale_fill_manual(
+    name = "N county days affected",
+    values = c("0-5" = viridis::viridis(5)[1],
+               "6-15" = viridis::viridis(5)[2],
+               "16-30" = viridis::viridis(5)[3],
+               "31-50" = viridis::viridis(5)[4],
+               "51+" = viridis::viridis(5)[5]),
+    na.value = grey_color  # Set the grey color for NA values
   ) +
   theme_map() +
   ggtitle(
@@ -100,7 +112,25 @@ p3 <-
   ) +
   theme(legend.position = 'top',
         legend.text = element_text(size = 13),
-        legend.title = element_text(size = 13)) 
+        legend.title = element_text(size = 13))
+# 
+# p3 <-
+#   to_plot |>
+#   ggplot() +
+#   geom_sf(aes(fill = n_po), color = NA) +
+#   scale_fill_viridis_c(
+#     name = "Number of days affected\nby 8+ hour power outage",
+#     limits = c(0, 100),
+#     oob = scales::squish,
+#     labels = c("0", '25', '50', '75', "≥100")
+#   ) +
+#   theme_map() +
+#   ggtitle(
+#     "Number of county-days in 2018 affected by\n8+ hour power outages"
+#   ) +
+#   theme(legend.position = 'top',
+#         legend.text = element_text(size = 13),
+#         legend.title = element_text(size = 13)) 
 
 # ggsave(
 #   plot = p3,
@@ -124,5 +154,14 @@ ggsave(plot = combined_plot,
   ),
   width = 21,
   height = 21
+)
+
+ggsave(plot = p3,
+       filename = here(
+         'figures_for_upload',
+         'PO.pdf'
+       ),
+       width = 7,
+       height = 7
 )
 

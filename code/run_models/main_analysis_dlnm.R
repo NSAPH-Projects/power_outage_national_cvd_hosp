@@ -10,7 +10,7 @@ source(here("code", "run_models", "run_models_helper_functions.R"))
 
 # Read --------------------------------------------------------------------
 
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_jan_28.RDS'))
 
 # Models ------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ dlnm_main_analysis_plot <-
   labs(
     x = "Lag (days)", 
     y = "Rate ratio", 
-    color = "Size of power outage:\n X% of county out or more") + 
+    color = "Power outage size") + 
   ggtitle(paste0("Association between power outage exposure and ",
   "hospitalizations\nin older adults (age 65+) in fee-for-service Medicare")) +
   theme(
@@ -87,7 +87,9 @@ dlnm_main_analysis_plot <-
       size = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  scale_color_brewer(palette = "Set1") +
+  #scale_color_brewer(palette = "Set1") +
+  scale_color_manual(labels = c("1%", "3%", "5%"), 
+                     values = c("#482677FF", "#2D708EFF", "#29AF7FFF")) +
   theme(strip.text = element_text(size = 17))
 
 
@@ -95,7 +97,7 @@ ggsave(
   dlnm_main_analysis_plot,
   filename = here(
     'figures_for_upload',
-    'main_analysis_dlnm_dec_29.pdf'
+    'main_analysis_dlnm_jan_28.pdf'
   ),
   width = 14,
   height = 7

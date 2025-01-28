@@ -10,7 +10,7 @@ pacman::p_load(tidyverse, data.table, here)
 
 
 ```{r}
-an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_dec_17.RDS'))
+an_dat <- read_rds(here('data', 'an_dat_urgent_hosp_jan_28.RDS'))
 
 dme_by_county <-
   read_rds(here(
@@ -19,28 +19,32 @@ dme_by_county <-
     "dme_use_by_county.RDS"
   ))
 
-pov_by_county <-
-  read_rds(here(
-    "data_for_upload",
-    "effect_mod_data",
-    "pov_measures.RDS"
-  ))
+# pov_by_county <-
+#   read_rds(here(
+#     "data_for_upload",
+#     "effect_mod_data",
+#     "pov_measures.RDS"
+#   ))
 
 an_dat <- an_dat %>%
-  left_join(dme_by_county) %>%
-  left_join(pov_by_county)
+  left_join(dme_by_county) #%>%
+  #left_join(pov_by_county)
 
 ```
 
 ```{r}
-an_dat %>% select(five_digit_fips, n_benes, n_benes_older_75, n_benes_under_75,
-                  n_benes_sex_1, n_benes_sex_2) %>% distinct() %>%
+an_dat %>%
+  select(five_digit_fips, n_benes, n_benes_older_75, n_benes_under_75,
+         n_benes_sex_1, n_benes_sex_2, n_benes_medicaid_eligible, n_benes_non_eligible) %>%
+  distinct() %>%
   summarize(
     n = sum(n_benes),
     n_older_75 = sum(n_benes_older_75),
     n_younger_75 = sum(n_benes_under_75),
     n_benes_male = sum(n_benes_sex_1),
-    n_benes_female = sum(n_benes_sex_2)) %>%
+    n_benes_female = sum(n_benes_sex_2),
+    n_benes_medicaid_eligible = sum(n_benes_medicaid_eligible),
+    n_benes_non_eligible = sum(n_benes_non_eligible)) %>% 
     knitr::kable() 
 ```
 
@@ -48,8 +52,8 @@ an_dat %>% select(five_digit_fips, n_benes, n_benes_older_75, n_benes_under_75,
 an_dat %>% select(five_digit_fips, n_benes, dme_quartile) %>% distinct() %>% group_by(dme_quartile) %>%
   summarize(n = sum(n_benes)) %>% knitr::kable()
 
-an_dat %>% select(five_digit_fips, n_benes, pov_quartile) %>% distinct() %>% group_by(pov_quartile) %>%
-  summarize(n = sum(n_benes)) %>% knitr::kable()
+# an_dat %>% select(five_digit_fips, n_benes, pov_quartile) %>% distinct() %>% group_by(pov_quartile) %>%
+#   summarize(n = sum(n_benes)) %>% knitr::kable()
 
 ```
 
