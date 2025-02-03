@@ -34,11 +34,15 @@ to_plot <- us_counties %>%
 
 to_plot <- to_plot %>% filter(state_fips != '15' & state_fips != '02')
 
+mean(to_plot$cvd_rate, na.rm = T)
+mean(to_plot$resp_rate, na.rm = T)
+
+
 p1 <-
   to_plot |>
   ggplot() +
   geom_sf(aes(fill = cvd_rate), color = NA) +
-  scale_fill_viridis_c(name = "Hospitalization rate") +
+  scale_fill_viridis_c(name = paste0("CVD\n", "hospitalization rate")) +
   theme_map() +
   ggtitle(
     paste0(
@@ -60,7 +64,7 @@ p2 <-
   to_plot |>
   ggplot() +
   geom_sf(aes(fill = resp_rate), color = NA) +
-  scale_fill_viridis_c(name = "Hospitalization rate") +
+  scale_fill_viridis_c(name = paste0("Respiratory\n", "hospitalization rate")) +
   theme_map() +
   ggtitle(
     paste0(
@@ -98,7 +102,7 @@ p3 <-
   ggplot() +
   geom_sf(aes(fill = n_po_cat), color = NA) +
   scale_fill_manual(
-    name = "N county days affected",
+    name = "N power outage days",
     values = c("0-5" = viridis::viridis(5)[1],
                "6-15" = viridis::viridis(5)[2],
                "16-30" = viridis::viridis(5)[3],
@@ -113,31 +117,31 @@ p3 <-
   theme(legend.position = 'top',
         legend.text = element_text(size = 13),
         legend.title = element_text(size = 13))
-# 
-# p3 <-
-#   to_plot |>
-#   ggplot() +
-#   geom_sf(aes(fill = n_po), color = NA) +
-#   scale_fill_viridis_c(
-#     name = "Number of days affected\nby 8+ hour power outage",
-#     limits = c(0, 100),
-#     oob = scales::squish,
-#     labels = c("0", '25', '50', '75', "≥100")
-#   ) +
-#   theme_map() +
-#   ggtitle(
-#     "Number of county-days in 2018 affected by\n8+ hour power outages"
-#   ) +
-#   theme(legend.position = 'top',
-#         legend.text = element_text(size = 13),
-#         legend.title = element_text(size = 13)) 
 
-# ggsave(
-#   plot = p3,
-#   here("figures", 'figures_output', "po_count_2018_nov_25.pdf"),
-#   width = 7,
-#   height = 7
-# )
+ p3 <-
+   to_plot |>
+   ggplot() +
+   geom_sf(aes(fill = n_po), color = NA) +
+   scale_fill_viridis_c(
+     name = "Number of days affected\nby 8+ hour power outage",
+     limits = c(0, 100),
+     oob = scales::squish,
+     labels = c("0", '25', '50', '75', "≥100")
+   ) +
+   theme_map() +
+   ggtitle(
+     "Number of county-days in 2018 affected by\n8+ hour power outages"
+   ) +
+   theme(legend.position = 'top',
+         legend.text = element_text(size = 13),
+         legend.title = element_text(size = 13))
+
+ ggsave(
+   plot = p3,
+   here("figures", 'figures_output', "po_count_2018_nov_25.pdf"),
+   width = 7,
+   height = 7
+ )
 
 combined_plot <- p1 + p2 + p3 + plot_layout(ncol = 3) & 
   theme(

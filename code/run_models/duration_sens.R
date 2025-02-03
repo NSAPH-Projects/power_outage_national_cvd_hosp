@@ -101,7 +101,7 @@ ggsave(
   filename = here(
     'figures_for_upload',
     'supplement',
-    'duration_sensitivity_analysis_dlnm_dec_17.pdf'
+    'duration_sensitivity_analysis_dlnm_feb_3.pdf'
   ),
   width = 14,
   height = 7
