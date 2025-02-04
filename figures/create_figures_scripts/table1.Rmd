@@ -49,6 +49,13 @@ an_dat %>%
 ```
 
 ```{r}
+
+w_10 <- quantile(an_dat$wind_speed, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+
+```
+
+
+```{r}
 an_dat %>% select(five_digit_fips, n_benes, dme_quartile) %>% distinct() %>% group_by(dme_quartile) %>%
   summarize(n = sum(n_benes)) %>% knitr::kable()
 
@@ -59,12 +66,21 @@ an_dat %>% select(five_digit_fips, n_benes, dme_quartile) %>% distinct() %>% gro
 
 ```{r}
 l <- an_dat %>% 
-  mutate(ws_quartile = ntile(wind_speed, 4),
-         precip_quartile = ntile(precip, 4),
-         temp_quartile = ntile(max_temp, 4)) 
+  mutate(ws_quartile = ntile(wind_speed, 10),
+         precip_quartile = ntile(precip, 10),
+         temp_quartile = ntile(max_temp, 10)) 
+a <- l %>% group_by(ws_quartile) %>% summarize(exposed = mean(exposed_8_hrs_0.01))
+b <- l %>% group_by(precip_quartile) %>% summarize(exposed = mean(exposed_8_hrs_0.01))
+c <- l %>% group_by(temp_quartile) %>% summarize(exposed = mean(exposed_8_hrs_0.01))
+
+
+
+
 l %>% select(ws_quartile, n_benes) %>%
   group_by(ws_quartile) %>%
   summarize(n = sum(n_benes)/100000000) %>% knitr::kable()
+
+cbind(a, b, c) %>% knitr::kable()
 
 ```
 
