@@ -653,3 +653,156 @@ get_dlnm_pred <- function(model_list) {
   
   return(predictions_list)
 }
+
+
+run_dlnm_models_wf_smoke <-
+  function(po_data,
+           outcome_col,
+           exposure_cols,
+           offset_col,
+           precip_dfs,
+           po_dfs) {
+    setNames(
+      lapply(
+        X = exposure_cols,
+        FUN = run_dlnm_po_model_copilot_wf_smoke,
+        outcome_col = outcome_col,
+        po_data = po_data,
+        offset = offset_col,
+        precip_dfs = precip_dfs, 
+        po_dfs = po_dfs
+      ),
+      exposure_columns
+    )
+  }
+
+run_dlnm_po_model_copilot_wf_smoke <-
+  function(po_data,
+           outcome_col,
+           exposure_col,
+           offset_col,
+           precip_dfs,
+           po_dfs) {
+    # create crossbases
+    temp_crossbasis_ns <- crossbasis(
+      po_data$max_temp,
+      lag = 6,
+      argvar = list(fun = "ns", df = 3),
+      arglag = list(fun = "ns", df = 3)
+    )
+    
+    power_outage_crossbasis <- crossbasis(
+      po_data[[exposure_col]],
+      lag = 6,
+      argvar = list(fun = "lin"),
+      arglag = list(fun = "ns", df = po_dfs)
+    )
+    
+    # Define formula
+    formula <- as.formula(
+      paste(
+        outcome_col,
+        "~",
+        "any_smoke +",
+        "power_outage_crossbasis",
+        "+",
+        "temp_crossbasis_ns",
+        "+",
+        "ns(precip,",
+        "df = ",
+        precip_dfs,
+        ")",
+        "+",
+        "ns(wind_speed,",
+        "df = 3)",
+        "+",
+        "offset(log(",
+        offset_col,
+        "))"
+      )
+    )
+    
+    # fit model
+    model <- gnm(
+      formula,
+      family = quasipoisson(),
+      eliminate = as.factor(po_data$stratum),
+      data = po_data
+    )
+    return(list(po_model = model, po_cb = power_outage_crossbasis))
+  }
+
+
+
+# run dlnms linear precip
+run_dlnm_linear_precip_wf_smoke <-
+  function(po_data,
+           outcome_col,
+           exposure_cols,
+           offset_col,
+           po_dfs) {
+    setNames(
+      lapply(
+        X = exposure_cols,
+        FUN = run_dlnm_po_model_linear_precip_wf_smoke,
+        outcome_col = outcome_col,
+        po_data = po_data,
+        offset = offset_col,
+        po_dfs = po_dfs
+      ),
+      exposure_columns
+    )
+  }
+
+
+run_dlnm_po_model_linear_precip_wf_smoke <-
+  function(po_data,
+           outcome_col,
+           exposure_col,
+           offset_col,
+           po_dfs) {
+    # create crossbases
+    temp_crossbasis_ns <- crossbasis(
+      po_data$max_temp,
+      lag = 6,
+      argvar = list(fun = "ns", df = 3),
+      arglag = list(fun = "ns", df = 3)
+    )
+    
+    power_outage_crossbasis <- crossbasis(
+      po_data[[exposure_col]],
+      lag = 6,
+      argvar = list(fun = "lin"),
+      arglag = list(fun = "ns", df = po_dfs)
+    )
+    
+    # Define formula
+    formula <- as.formula(
+      paste(
+        outcome_col,
+        "~",
+        "any_smoke +",
+        "power_outage_crossbasis",
+        "+",
+        "temp_crossbasis_ns",
+        "+",
+        "precip",
+        "+",
+        "ns(wind_speed,",
+        "df = 3)",
+        "+",
+        "offset(log(",
+        offset_col,
+        "))"
+      )
+    )
+    
+    # fit model
+    model <- gnm(
+      formula,
+      family = quasipoisson(),
+      eliminate = as.factor(po_data$stratum),
+      data = po_data
+    )
+    return(list(po_model = model, po_cb = power_outage_crossbasis))
+  }

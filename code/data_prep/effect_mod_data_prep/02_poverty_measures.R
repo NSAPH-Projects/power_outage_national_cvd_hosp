@@ -46,4 +46,4 @@ acs_dat <-
 acs_dat <- acs_dat %>% filter(five_digit_fips %in% fips$five_digit_fips)
   
 write_rds(acs_dat,
-          here('data_for_upload', 'effect_mod_data', 'pov_measures.RDS'))
+          here('local_data', 'effect_mod_data', 'pov_measures.RDS'))

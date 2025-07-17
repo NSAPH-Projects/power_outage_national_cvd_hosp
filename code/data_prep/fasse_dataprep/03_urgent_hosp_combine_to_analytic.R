@@ -28,7 +28,7 @@ outage_exposure <-
   ) %>%
   select(five_digit_fips, 
          day, 
-         exposed_1_hrs_percentile:exposed_1_hrs_0.05, 
+         exposed_1_hrs_percentile:exposed_1_hrs_0.05, # may need to change this line in the rerun - new cols 
          county_customers, 
          percent_served) %>%
   mutate(day = as.Date(day))
@@ -54,6 +54,7 @@ length(unique(an_dat$five_digit_fips))
 j <- an_dat %>% filter(!is.na(exposed_8_hrs_0.01) & percent_served >=0.5)
 length(unique(j$five_digit_fips))
 # 907 excluded due to missing exposure data 
+write_rds(j, here("data_for_upload", 'included_counties.RDS')) # new line for getting included counties 
 
 # get rid of counties w no one
 an_dat <- an_dat %>% filter(n_benes > 0)
