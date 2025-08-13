@@ -34,7 +34,7 @@ po_dat <- po_dat %>% left_join(wf_smoke) %>%
   mutate(any_smoke = ifelse(smoke > 0, 1, 0))
 
 
-write_rds(po_dat,
+write_parquet(po_dat,
   here(
     "data_for_upload",
     "power_outage_exposure_data_cleaning_output",

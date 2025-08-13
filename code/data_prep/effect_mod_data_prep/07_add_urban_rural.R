@@ -7,7 +7,7 @@ pacman::p_load(fst, tidyverse, here, arrow, stringr)
 
 # Read --------------------------------------------------------------------
 
-po <- read_rds(here("data_for_upload", 'hot_and_cold_pos.RDS'))
+po <- read_rds(here("local_data", 'hot_and_cold_pos.RDS'))
 
 nchs_ur <- 
   read_csv(here("local_data", "effect_mod_data", "NCHSurb-rural-codes.csv"))
