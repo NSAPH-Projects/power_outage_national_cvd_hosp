@@ -9,8 +9,7 @@ pacman::p_load(fst, tidyverse, here, arrow)
 # Read --------------------------------------------------------------------
 
 temp_dat <- read_fst(here(
-  'data_for_upload',
-  'effect_mod_data',
+  'local_data',
   'hot_and_cold_days.fst'
 )) %>% 
   filter(lubridate::year(date) == 2018) %>%
@@ -37,6 +36,6 @@ po <- po %>%
   exposed_8_hrs_0.05_cold = ifelse(anomcold == 1, exposed_8_hrs_0.05, 0)
 )
 
-po <- po %>% select(-c(year:anomcold))
+po <- po %>% select(-c(date:anomcold))
 
-write_rds(po, here("data_for_upload", 'hot_and_cold_pos.RDS'))
+write_rds(po, here("local_data", 'hot_and_cold_pos.RDS'))

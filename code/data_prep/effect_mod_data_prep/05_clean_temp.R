@@ -73,8 +73,7 @@ days_over_thresholds <- days_over_thresholds %>%
 write_fst(
   days_over_thresholds,
   here(
-    'data_for_upload',
-    'effect_mod_data',
+    'local_data',
     'hot_and_cold_days.fst'
   )
 )
