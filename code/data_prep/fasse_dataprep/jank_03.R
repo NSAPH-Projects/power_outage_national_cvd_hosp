@@ -23,16 +23,15 @@ outage_exposure <-
     here(
       'data_for_upload',
       'power_outage_exposure_data_cleaning_output',
-      'analytic_exposure_hot_cold_urban_rural_smoke.parquet'
+      # 'analytic_exposure_data_2018.parquet'
+      'analytic_exposure_hot_cold_urban_rural.parquet'
     )
   ) %>%
   select(five_digit_fips, 
          day, 
-         exposed_1_hrs_percentile:exposed_8_hrs_0.05_cold, # may need to change this line in the rerun - new cols 
+         exposed_1_hrs_percentile:urban, # may need to change this line in the rerun - new cols 
          county_customers, 
-         percent_served,
-         urban,
-         any_smoke) %>%
+         percent_served) %>%
   mutate(day = as.Date(day))
 
 meteo <- read_parquet(here('data', 'meteo_vars.parquet')) %>%
@@ -76,7 +75,7 @@ an_dat_low_missingness <- an_dat %>% filter(percent_served >= 0.8 &
 # VIVIAN 
 # Need to know how many counties have >80% of data 
 length(unique(an_dat_low_missingness$five_digit_fips))
-# 1877
+
 
 # filter for low percent served
 an_dat <- an_dat %>% filter(percent_served >= 0.5 & !is.na(percent_served))
@@ -126,10 +125,6 @@ median(outages$n)
 IQR(outages$n)
 quantile(outages$n, c(0.05, 0.25, 0.75, 0.95))
 
-# median outages: 2
-# IQR: 4
-# quantiles
-# 0   1   5  15 
 # mean outages 7.67
 # sd = 29.20
 
@@ -197,4 +192,3 @@ write_rds(
   an_dat_low_missingness,
   here('data', 'an_dat_urgent_hosp_LOW_MISSINGNESS_SENS.RDS')
 )
-

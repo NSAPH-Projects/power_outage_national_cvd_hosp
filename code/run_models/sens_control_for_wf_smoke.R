@@ -78,7 +78,7 @@ dlnm_main_analysis_plot <-
     y = "Rate ratio", 
     color = "Power outage size") + 
   ggtitle(paste0("Association between power outage exposure and ",
-                 "hospitalizations\nin older adults (age 65+) in fee-for-service Medicare")) +
+                 "hospitalizations\nin older adults (age 65+) in fee-for-service Medicare, adjusting for wf smoke")) +
   theme(
     panel.spacing = unit(1, "lines"),
     panel.border = element_rect(
